@@ -1,0 +1,161 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  COMPLAINANT
+  INVESTIGATOR
+  ADMIN
+}
+
+enum ComplaintStatus {
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  ESCALATED
+  REJECTED
+  ARCHIVED
+}
+
+enum CaseStatus {
+  OPENED
+  ASSIGNED
+  ACTIVE_INVESTIGATION
+  UNDER_REVIEW
+  CLOSED
+}
+
+enum EvidenceStatus {
+  UPLOADING
+  VERIFYING
+  VERIFIED
+  INTEGRITY_FAILED
+}
+
+enum BlockchainStatus {
+  NOT_ANCHORED
+  ANCHORING
+  ANCHORED
+  ANCHOR_FAILED
+}
+
+model User {
+  id        String      @id @default(uuid())
+  role      Role        @default(COMPLAINANT)
+  email     String      @unique
+  password  String
+  name      String
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  complaints      Complaint[]
+  auditLogs       AuditLog[]
+  assignedCases   Case[]      @relation("InvestigatorCases")
+  caseNotes       CaseNote[]
+  uploadedEvidence Evidence[] @relation("UserEvidence")
+}
+
+model Complaint {
+  id              String          @id @default(uuid())
+  title           String
+  description     String
+  status          ComplaintStatus @default(DRAFT)
+  priority        String?
+  category        String?
+  rejectionReason String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  
+  caseId      String?  @unique
+  case        Case?    @relation(fields: [caseId], references: [id])
+}
+
+model Case {
+  id             String     @id @default(uuid())
+  title          String
+  description    String
+  status         CaseStatus @default(OPENED)
+  priority       String?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  investigatorId String?
+  investigator   User?      @relation("InvestigatorCases", fields: [investigatorId], references: [id])
+
+  complaint   Complaint?
+  evidence    Evidence[]
+  caseNotes   CaseNote[]
+}
+
+model CaseNote {
+  id        String   @id @default(uuid())
+  caseId    String
+  authorId  String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  case      Case     @relation(fields: [caseId], references: [id])
+  author    User     @relation(fields: [authorId], references: [id])
+}
+
+model Evidence {
+  id             String         @id @default(uuid())
+  caseId         String
+  uploadedById   String
+  fileName       String
+  mimeType       String
+  size           Int
+  clientHash     String?
+  sha256Hash     String?
+  storageUrl     String
+  status         EvidenceStatus @default(UPLOADING)
+  category       String?
+  description    String?
+  txHash         String?  // Blockchain transaction hash
+  aiSummary      String?
+  blockchainStatus          BlockchainStatus? @default(NOT_ANCHORED)
+  blockchainNetwork         String?
+  blockchainTxHash          String?
+  blockchainBlockNumber     Int?
+  blockchainTimestamp       DateTime?
+  blockchainContractAddress String?
+  anchoredAt                DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  case           Case           @relation(fields: [caseId], references: [id])
+  uploadedBy     User           @relation("UserEvidence", fields: [uploadedById], references: [id])
+  custodyLogs    ChainOfCustodyLog[]
+}
+
+model ChainOfCustodyLog {
+  id         String   @id @default(uuid())
+  evidenceId String
+  actorId    String
+  action     String   // e.g., "UPLOADED", "VIEWED", "AI_ANALYZED"
+  timestamp  DateTime @default(now())
+  ipAddress  String?
+
+  evidence   Evidence @relation(fields: [evidenceId], references: [id])
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  action    String
+  resource  String?
+  details   String?
+  ipAddress String?
+  timestamp DateTime @default(now())
+
+  user      User?    @relation(fields: [userId], references: [id])
+}
