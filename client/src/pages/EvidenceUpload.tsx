@@ -1,10 +1,23 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router';
 import { ArrowLeft, UploadCloud, ShieldCheck, AlertCircle } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 export const EvidenceUpload = () => {
   const { caseId } = useParams<{ caseId: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  if (user?.role === 'COMPLAINANT') {
+    return (
+      <div className="max-w-2xl mx-auto p-8 text-center">
+        <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+        <h2 className="text-xl font-semibold text-white mb-2">Access Denied</h2>
+        <p className="text-zinc-400">Complainants are not authorized to directly upload evidence into an ongoing investigation. Please provide your evidence to the assigned investigator through proper channels.</p>
+        <Link to={`/cases/${caseId}`} className="mt-6 inline-block px-4 py-2 bg-indigo-600 text-white rounded-md">Return to Case</Link>
+      </div>
+    );
+  }
   
   const [file, setFile] = useState<File | null>(null);
   const [category, setCategory] = useState('DOCUMENT');

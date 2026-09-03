@@ -35,9 +35,7 @@ export const uploadEvidence = async (req: AuthRequest, res: Response) => {
     }
 
     if (req.user!.role === 'COMPLAINANT') {
-      if (!c.complaint || c.complaint.userId !== req.user!.id) {
-        return res.status(403).json({ error: 'Forbidden' });
-      }
+      return res.status(403).json({ error: 'Forbidden: Complainants cannot upload evidence' });
     } else if (req.user!.role === 'INVESTIGATOR') {
       if (!c.investigatorId || c.investigatorId !== req.user!.id) {
         return res.status(403).json({ error: 'Forbidden: Case must be explicitly assigned to you to upload evidence' });
@@ -60,9 +58,10 @@ export const uploadEvidence = async (req: AuthRequest, res: Response) => {
     const fileBuffer = req.file.buffer;
     const serverHash = crypto.createHash('sha256').update(fileBuffer).digest('hex');
 
-    let status: any = 'VERIFIED';
     if (clientHash.toLowerCase() !== serverHash.toLowerCase()) {
-      status = 'INTEGRITY_FAILED';
+      return res.status(400).json({ 
+        error: 'Integrity verification failed. The calculated file hash does not match the provided hash.'
+      });
     }
 
     // Generate unique object key for storage
@@ -80,11 +79,20 @@ export const uploadEvidence = async (req: AuthRequest, res: Response) => {
         clientHash: clientHash.toLowerCase(),
         sha256Hash: serverHash.toLowerCase(),
         storageUrl,
-        status,
+        status: 'VERIFIED',
         category,
         description,
       }
     });
+
+    // Save verified evidence to persistent storage service
+    try {
+      await saveEvidence(storageUrl, fileBuffer, req.file.mimetype);
+    } catch (storageError) {
+      // Cleanup if storage fails
+      await prisma.evidence.delete({ where: { id: evidence.id } });
+      throw storageError;
+    }
 
     // Audit and Custody logs
     await prisma.auditLog.create({
@@ -97,53 +105,21 @@ export const uploadEvidence = async (req: AuthRequest, res: Response) => {
       }
     });
 
-    await prisma.chainOfCustodyLog.create({
-      data: {
-        evidenceId: evidence.id,
-        actorId: req.user!.id,
-        action: 'UPLOADED',
-        ipAddress: req.ip,
-      }
-    });
-
-    if (status === 'INTEGRITY_FAILED') {
-      await prisma.auditLog.create({
-        data: {
-          userId: req.user!.id,
-          action: 'EVIDENCE_INTEGRITY_FAILED',
-          resource: `Evidence:${evidence.id}`,
-          details: `Client hash ${clientHash} did not match server hash ${serverHash}`,
-          ipAddress: req.ip,
-        }
-      });
-      
-      await prisma.chainOfCustodyLog.create({
-        data: {
+    await prisma.chainOfCustodyLog.createMany({
+      data: [
+        {
           evidenceId: evidence.id,
           actorId: req.user!.id,
-          action: 'INTEGRITY_VERIFICATION_FAILED',
+          action: 'UPLOADED',
+          ipAddress: req.ip,
+        },
+        {
+          evidenceId: evidence.id,
+          actorId: req.user!.id,
+          action: 'HASH_CALCULATED_AND_VERIFIED',
           ipAddress: req.ip,
         }
-      });
-
-      // Do not retain invalid upload in persistent storage
-      return res.status(400).json({ 
-        error: 'Integrity verification failed. The calculated file hash does not match the provided hash.',
-        evidence 
-      });
-    }
-
-    // Save verified evidence to persistent storage service
-    await saveEvidence(storageUrl, fileBuffer, req.file.mimetype);
-
-    // Verified log
-    await prisma.chainOfCustodyLog.create({
-      data: {
-        evidenceId: evidence.id,
-        actorId: req.user!.id,
-        action: 'HASH_CALCULATED_AND_VERIFIED',
-        ipAddress: req.ip,
-      }
+      ]
     });
 
     res.status(201).json({ evidence });
