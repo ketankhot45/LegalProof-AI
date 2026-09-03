@@ -50,10 +50,22 @@ export const register = async (req: Request, res: Response) => {
 
     res.status(201).json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
   } catch (error: any) {
-    console.error('Register error:', error);
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: (error as any).errors });
     }
+
+    if (
+      error?.name === 'PrismaClientInitializationError' ||
+      error?.code === 'P1001' ||
+      (typeof error?.message === 'string' && error.message.includes("Can't reach database server"))
+    ) {
+      console.warn('Register attempt failed: PostgreSQL database is currently unreachable.');
+      return res.status(503).json({
+        error: 'Database connection error: Unable to reach PostgreSQL database at the configured host. Please ensure DATABASE_URL in Settings / Secrets points to a publicly reachable host (not localhost).'
+      });
+    }
+
+    console.error('Register error:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
@@ -84,10 +96,22 @@ export const login = async (req: Request, res: Response) => {
 
     res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
   } catch (error: any) {
-    console.error('Login error:', error);
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: (error as any).errors });
     }
+
+    if (
+      error?.name === 'PrismaClientInitializationError' ||
+      error?.code === 'P1001' ||
+      (typeof error?.message === 'string' && error.message.includes("Can't reach database server"))
+    ) {
+      console.warn('Login attempt failed: PostgreSQL database is currently unreachable.');
+      return res.status(503).json({
+        error: 'Database connection error: Unable to reach PostgreSQL database at the configured host. Please ensure DATABASE_URL in Settings / Secrets points to a publicly reachable host (not localhost).'
+      });
+    }
+
+    console.error('Login error:', error);
     res.status(500).json({ error: error.message || 'Internal Server Error' });
   }
 };
@@ -104,7 +128,16 @@ export const getMe = async (req: AuthRequest, res: Response) => {
     if (!user) return res.status(404).json({ error: 'User not found' });
     
     res.json({ user });
-  } catch (error) {
+  } catch (error: any) {
+    if (
+      error?.name === 'PrismaClientInitializationError' ||
+      error?.code === 'P1001' ||
+      (typeof error?.message === 'string' && error.message.includes("Can't reach database server"))
+    ) {
+      console.warn('getMe: PostgreSQL database is unreachable.');
+      return res.status(503).json({ error: 'Database unreachable' });
+    }
+    console.error('getMe error:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };

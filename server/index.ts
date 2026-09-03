@@ -90,6 +90,16 @@ async function startServer() {
 
   // Error Handler
   app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+    if (
+      err?.name === 'PrismaClientInitializationError' ||
+      err?.code === 'P1001' ||
+      (typeof err?.message === 'string' && err.message.includes("Can't reach database server"))
+    ) {
+      console.warn('Database request error: PostgreSQL server is currently unreachable.');
+      return res.status(503).json({
+        error: 'Database connection error: Unable to reach PostgreSQL database. Please ensure DATABASE_URL in Settings / Secrets points to a publicly accessible database host (not localhost).'
+      });
+    }
     console.error('Unhandled Error:', err);
     res.status(500).json({ error: 'Internal Server Error' });
   });
