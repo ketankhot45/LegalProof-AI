@@ -408,11 +408,11 @@ export const CasesList = () => {
                 <tbody className="divide-y divide-zinc-800">
                   {filteredCases.map((c: any) => (
                     <tr key={c.id} className="hover:bg-zinc-800/40 transition-colors">
-                      <td className="px-6 py-4 max-w-[200px] sm:max-w-[300px]">
-                        <Link to={`/cases/${c.id}`} className="font-medium text-zinc-200 hover:text-indigo-400 block transition-colors truncate">
+                      <td className="px-6 py-4 max-w-[220px] sm:max-w-[320px]">
+                        <Link to={`/cases/${c.id}`} className="font-medium text-white hover:text-indigo-300 block transition-colors truncate">
                           {c.title}
                         </Link>
-                        <span className="text-[11px] text-zinc-500 font-mono truncate block">UUID: {c.id.substring(0, 13)}...</span>
+                        <span className="text-[11px] text-zinc-500 font-mono truncate block mt-0.5">Ref: {c.id.substring(0, 8)}...</span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 py-0.5 text-xs rounded-md border ${getPriorityBadge(c.priority)}`}>
@@ -420,48 +420,29 @@ export const CasesList = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2.5 py-1 text-xs rounded-full border font-medium ${getStatusColor(c.status)}`}>
+                        <span className={`px-2.5 py-0.5 text-xs rounded-full border font-medium ${getStatusColor(c.status)}`}>
                           {c.status.replace('_', ' ')}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-xs text-zinc-300 whitespace-nowrap">
                         {c.investigator ? (
-                          <span className="font-medium text-zinc-200 flex items-center gap-1.5 truncate max-w-[150px]">
+                          <span className="font-medium text-zinc-200 flex items-center gap-1.5 truncate max-w-[170px]">
                             <span className="truncate">{c.investigator.name}</span>
                             {c.investigatorId === user?.id && (
-                              <span className="text-[10px] bg-indigo-500/20 text-indigo-300 px-1.5 py-0.2 rounded border border-indigo-500/30 flex-shrink-0">You</span>
+                              <span className="text-[10px] bg-indigo-500/20 text-indigo-300 px-1.5 py-0.2 rounded border border-indigo-500/30 flex-shrink-0 font-medium">You</span>
                             )}
                           </span>
                         ) : (
-                          <div className="flex items-center space-x-2">
-                            <span className="text-amber-400/90 font-medium italic bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 text-[11px]">
-                              Unassigned
-                            </span>
-                            {user?.role === 'INVESTIGATOR' && (
-                              <button
-                                type="button"
-                                onClick={(e) => handleClaimCase(e, c.id)}
-                                disabled={claimingId === c.id}
-                                className="inline-flex items-center px-2 py-0.5 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 rounded text-[11px] font-medium transition-colors disabled:opacity-50"
-                              >
-                                {claimingId === c.id ? (
-                                  <>
-                                    <RefreshCw className="w-2.5 h-2.5 mr-1 animate-spin" />
-                                    Claiming...
-                                  </>
-                                ) : (
-                                  <>
-                                    <UserCheck className="w-2.5 h-2.5 mr-1 text-indigo-400" />
-                                    Assign to me
-                                  </>
-                                )}
-                              </button>
-                            )}
-                          </div>
+                          <span className="text-amber-400 font-medium bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 text-[11px]">
+                            Unassigned
+                          </span>
                         )}
                       </td>
                       <td className="px-6 py-4 text-xs text-zinc-400 whitespace-nowrap">
-                        {new Date(c.createdAt).toLocaleDateString()}
+                        <div>{new Date(c.createdAt).toLocaleDateString()}</div>
+                        <div className="text-[11px] text-zinc-500 font-mono">
+                          {new Date(c.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </div>
                       </td>
                       <td className="px-6 py-4 text-right whitespace-nowrap">
                         <div className="inline-flex items-center justify-end space-x-2">
@@ -470,21 +451,28 @@ export const CasesList = () => {
                               type="button"
                               onClick={(e) => handleClaimCase(e, c.id)}
                               disabled={claimingId === c.id}
-                              className="inline-flex items-center text-xs font-medium text-indigo-300 hover:text-white bg-indigo-600/20 hover:bg-indigo-600/40 px-2.5 py-1.5 rounded-lg border border-indigo-500/30 transition-colors disabled:opacity-50"
+                              className="inline-flex items-center text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 px-2.5 py-1.5 rounded-lg transition-colors shadow-sm disabled:opacity-50"
+                              title="Assign this case to yourself"
                             >
                               {claimingId === c.id ? (
-                                <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
+                                <>
+                                  <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
+                                  Claiming...
+                                </>
                               ) : (
-                                <UserCheck className="w-3 h-3 mr-1 text-indigo-400" />
+                                <>
+                                  <UserCheck className="w-3 h-3 mr-1" />
+                                  Assign to me
+                                </>
                               )}
-                              Assign to me
                             </button>
                           )}
                           <Link 
                             to={`/cases/${c.id}`} 
-                            className="inline-flex items-center text-xs font-semibold text-indigo-400 hover:text-indigo-300 bg-indigo-600/10 hover:bg-indigo-600/20 px-3 py-1.5 rounded-lg border border-indigo-500/30 transition-colors"
+                            className="inline-flex items-center text-xs font-semibold text-indigo-300 hover:text-white bg-indigo-600/15 hover:bg-indigo-600/30 px-3 py-1.5 rounded-lg border border-indigo-500/30 transition-colors"
                           >
-                            Manage <ArrowRight className="w-3 h-3 ml-1" />
+                            <span>View Case</span>
+                            <ArrowRight className="w-3 h-3 ml-1.5" />
                           </Link>
                         </div>
                       </td>

@@ -82,10 +82,14 @@ export const ComplaintDetails = () => {
         throw new Error(data.error || 'Failed to complete review action');
       }
       
-      setComplaint(data.complaint);
+      setComplaint({
+        ...data.complaint,
+        case: data.case || complaint.case,
+        caseId: data.case?.id || complaint.caseId
+      });
       setActionSuccess(
         reviewAction === 'ESCALATE' 
-          ? 'Complaint successfully escalated to a formal Case investigation!' 
+          ? 'Complaint successfully escalated to a formal Case investigation.' 
           : reviewAction === 'REJECT'
           ? 'Complaint marked as Rejected.'
           : 'Complaint status updated to Under Review.'
@@ -210,22 +214,26 @@ export const ComplaintDetails = () => {
           </div>
 
           {/* Linked Case Card if Escalated */}
-          {complaint.case && (
-            <div className="bg-indigo-950/20 border border-indigo-500/30 rounded-xl p-6 flex items-center justify-between">
+          {(complaint.case || complaint.status === 'ESCALATED') && (
+            <div className="bg-indigo-950/20 border border-indigo-500/30 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center space-x-3.5">
-                <div className="p-3 bg-indigo-500/10 text-indigo-400 rounded-lg border border-indigo-500/20">
+                <div className="p-2.5 bg-indigo-500/15 text-indigo-400 rounded-lg border border-indigo-500/30 shrink-0">
                   <Briefcase className="w-5 h-5" />
                 </div>
                 <div>
                   <span className="text-[11px] font-semibold uppercase tracking-wider text-indigo-400">Formal Investigation Active</span>
-                  <h4 className="text-sm font-semibold text-white mt-0.5">{complaint.case.title}</h4>
-                  <p className="text-xs text-zinc-400">Status: {complaint.case.status.replace('_', ' ')}</p>
+                  <h4 className="text-sm font-semibold text-white mt-0.5">
+                    {complaint.case?.title || `Case: ${complaint.title}`}
+                  </h4>
+                  <p className="text-xs text-zinc-400 mt-0.5">
+                    Status: <span className="text-zinc-200 font-medium">{(complaint.case?.status || 'OPENED').replace('_', ' ')}</span>
+                  </p>
                 </div>
               </div>
-              {isInvestigator && (
+              {isInvestigator && (complaint.case?.id || complaint.caseId) && (
                 <Link
-                  to={`/cases/${complaint.case.id}`}
-                  className="inline-flex items-center px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-medium transition-colors"
+                  to={`/cases/${complaint.case?.id || complaint.caseId}`}
+                  className="inline-flex items-center justify-center px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold transition-colors shrink-0 shadow-sm"
                 >
                   <Briefcase className="w-3.5 h-3.5 mr-1.5" />
                   View Linked Case →
@@ -269,6 +277,15 @@ export const ComplaintDetails = () => {
                   {new Date(complaint.updatedAt).toLocaleString()}
                 </dd>
               </div>
+              {complaint.status === 'ESCALATED' && (
+                <div>
+                  <dt className="text-zinc-500">Investigation Status</dt>
+                  <dd className="mt-1 font-medium text-indigo-400 flex items-center">
+                    <Briefcase className="w-3.5 h-3.5 mr-1.5" />
+                    Escalated to Formal Case
+                  </dd>
+                </div>
+              )}
               {complaint.clientHash && (
                 <div className="pt-2 border-t border-zinc-800/60">
                   <dt className="text-zinc-500">Client SHA-256 Hash</dt>
@@ -289,28 +306,6 @@ export const ComplaintDetails = () => {
             </dl>
           </div>
 
-          {/* Investigator Escalated Case Panel */}
-          {isInvestigator && complaint.status === 'ESCALATED' && (
-            <div className="bg-zinc-900 border border-indigo-500/30 rounded-xl p-6 space-y-3">
-              <h3 className="text-xs font-semibold text-indigo-400 uppercase tracking-wider flex items-center">
-                <Briefcase className="w-4 h-4 mr-2" />
-                Escalated to Formal Case
-              </h3>
-              <p className="text-xs text-zinc-400 leading-relaxed">
-                This complaint has been escalated to an active investigation dossier.
-              </p>
-              {(complaint.case?.id || complaint.caseId) && (
-                <Link
-                  to={`/cases/${complaint.case?.id || complaint.caseId}`}
-                  className="w-full inline-flex items-center justify-center px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-medium transition-colors"
-                >
-                  <Briefcase className="w-3.5 h-3.5 mr-2" />
-                  View Linked Case
-                </Link>
-              )}
-            </div>
-          )}
-
           {/* Investigator Action Panel */}
           {needsReview && (
             <div className="bg-zinc-900 border border-indigo-500/30 rounded-xl p-6 space-y-4">
@@ -326,33 +321,68 @@ export const ComplaintDetails = () => {
               )}
 
               {!reviewAction ? (
-                <div className="space-y-2.5">
-                  <button 
-                    onClick={() => { setReviewAction('APPROVE'); setValidationError(null); }} 
-                    className="w-full px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-lg text-xs font-medium transition-colors text-left flex items-center justify-between"
-                  >
-                    <span>Mark Under Review</span>
-                    <Clock className="w-3.5 h-3.5 text-amber-400" />
-                  </button>
-                  <button 
-                    onClick={() => { setReviewAction('ESCALATE'); setValidationError(null); }} 
-                    className="w-full px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-medium transition-colors text-left flex items-center justify-between"
-                  >
-                    <span>Escalate to Formal Case</span>
-                    <Briefcase className="w-3.5 h-3.5 text-white" />
-                  </button>
-                  <button 
-                    onClick={() => { setReviewAction('REJECT'); setValidationError(null); }} 
-                    className="w-full px-4 py-2.5 bg-red-950/30 hover:bg-red-900/40 text-red-400 border border-red-800/30 rounded-lg text-xs font-medium transition-colors text-left flex items-center justify-between"
-                  >
-                    <span>Reject Complaint</span>
-                    <XCircle className="w-3.5 h-3.5 text-red-400" />
-                  </button>
+                <div className="space-y-3">
+                  {/* Primary Next Action */}
+                  <div>
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 block mb-1.5">
+                      Primary Next Action
+                    </span>
+                    <button 
+                      onClick={() => { setReviewAction('ESCALATE'); setValidationError(null); }} 
+                      className="w-full px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-lg text-xs transition-colors flex items-center justify-between shadow-sm"
+                    >
+                      <span className="flex items-center">
+                        <Briefcase className="w-3.5 h-3.5 mr-2" />
+                        Escalate to Formal Case
+                      </span>
+                      <span className="text-[10px] font-mono bg-indigo-700/80 px-1.5 py-0.5 rounded text-indigo-100">Primary</span>
+                    </button>
+                  </div>
+
+                  {/* Status Progression */}
+                  <div className="pt-2 border-t border-zinc-800/80">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 block mb-1.5">
+                      Alternative Actions
+                    </span>
+                    <div className="space-y-2">
+                      {complaint.status === 'SUBMITTED' && (
+                        <button 
+                          onClick={() => { setReviewAction('APPROVE'); setValidationError(null); }} 
+                          className="w-full px-3.5 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-lg text-xs font-medium transition-colors text-left flex items-center justify-between border border-zinc-700/60"
+                        >
+                          <span className="flex items-center">
+                            <Clock className="w-3.5 h-3.5 mr-2 text-amber-400" />
+                            Mark Under Review
+                          </span>
+                          <span className="text-[10px] text-zinc-400">Preliminary</span>
+                        </button>
+                      )}
+                      <button 
+                        onClick={() => { setReviewAction('REJECT'); setValidationError(null); }} 
+                        className="w-full px-3.5 py-2 bg-red-950/20 hover:bg-red-900/30 text-red-400 border border-red-800/30 rounded-lg text-xs font-medium transition-colors text-left flex items-center justify-between"
+                      >
+                        <span className="flex items-center">
+                          <XCircle className="w-3.5 h-3.5 mr-2 text-red-400" />
+                          Reject Complaint
+                        </span>
+                        <span className="text-[10px] text-red-400/80">Decline</span>
+                      </button>
+                    </div>
+                  </div>
                 </div>
               ) : (
-                <div className="space-y-3 pt-2">
-                  <div className="text-xs text-zinc-300">
-                    Selected Action: <span className="font-semibold text-white">{reviewAction}</span>
+                <div className="space-y-3 pt-1">
+                  <div className="p-3 bg-zinc-950 rounded-lg border border-zinc-800 text-xs text-zinc-300">
+                    <div className="font-semibold text-white mb-1">
+                      {reviewAction === 'ESCALATE' ? 'Escalate to Formal Case' : reviewAction === 'APPROVE' ? 'Mark Under Review' : 'Reject Complaint'}
+                    </div>
+                    <p className="text-[11px] text-zinc-400 leading-relaxed">
+                      {reviewAction === 'ESCALATE'
+                        ? 'This will immediately generate a formal Case investigation dossier linked to this complaint and notify assigned personnel.'
+                        : reviewAction === 'APPROVE'
+                        ? 'Update this complaint status from Submitted to Under Review while preliminary facts are checked.'
+                        : 'Reject this complaint and provide mandatory rationale to the complainant.'}
+                    </p>
                   </div>
 
                   {reviewAction === 'REJECT' && (
