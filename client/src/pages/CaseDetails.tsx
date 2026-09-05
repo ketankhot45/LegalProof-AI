@@ -14,7 +14,12 @@ import {
   FileText,
   ArrowRight,
   Shield,
-  Upload
+  Upload,
+  Check,
+  X,
+  Hourglass,
+  HelpCircle,
+  FileWarning
 } from 'lucide-react';
 import { EvidenceList } from '../components/EvidenceList';
 
@@ -28,6 +33,14 @@ export const CaseDetails = () => {
   const [noteContent, setNoteContent] = useState('');
   const [submittingNote, setSubmittingNote] = useState(false);
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
+
+  // Assignment request states
+  const [showRequestForm, setShowRequestForm] = useState(false);
+  const [requestNotes, setRequestNotes] = useState('');
+  const [submittingRequest, setSubmittingRequest] = useState(false);
+  const [reviewingRequestId, setReviewingRequestId] = useState<string | null>(null);
+  const [rejectingRequestId, setRejectingRequestId] = useState<string | null>(null);
+  const [rejectionReason, setRejectionReason] = useState('');
 
   const fetchCase = () => {
     setError(null);
@@ -76,23 +89,65 @@ export const CaseDetails = () => {
     }
   };
 
-  const handleAssignSelf = async () => {
+  const handleRequestAssignment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmittingRequest(true);
     setFeedbackMessage(null);
     try {
-      const res = await fetch(`/api/v1/cases/${id}`, {
-        method: 'PUT',
-        headers: { 
+      const res = await fetch(`/api/v1/cases/${id}/assignment-requests`, {
+        method: 'POST',
+        headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify({ investigatorId: user?.id, status: 'ASSIGNED' }),
+        body: JSON.stringify({ notes: requestNotes.trim() || undefined }),
       });
-      if (res.ok) {
-        setFeedbackMessage('You have assigned yourself as lead investigator on this case.');
-        fetchCase();
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to submit assignment request');
       }
-    } catch (e) {
-      console.error(e);
+      setFeedbackMessage('Assignment request submitted successfully. Awaiting Administrator approval.');
+      setShowRequestForm(false);
+      setRequestNotes('');
+      fetchCase();
+    } catch (err: any) {
+      alert(err.message || 'Failed to submit request');
+    } finally {
+      setSubmittingRequest(false);
+    }
+  };
+
+  const handleReviewRequest = async (requestId: string, action: 'APPROVE' | 'REJECT') => {
+    setFeedbackMessage(null);
+    setReviewingRequestId(requestId);
+    try {
+      const res = await fetch(`/api/v1/cases/assignment-requests/${requestId}/review`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          action,
+          rejectionReason: action === 'REJECT' ? rejectionReason.trim() : undefined,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || `Failed to ${action.toLowerCase()} request`);
+      }
+      setFeedbackMessage(
+        action === 'APPROVE'
+          ? 'Investigator assignment approved successfully.'
+          : 'Assignment request rejected.'
+      );
+      setRejectingRequestId(null);
+      setRejectionReason('');
+      fetchCase();
+    } catch (err: any) {
+      alert(err.message || 'Review action failed');
+    } finally {
+      setReviewingRequestId(null);
     }
   };
 
@@ -114,6 +169,9 @@ export const CaseDetails = () => {
         setNoteContent('');
         setFeedbackMessage('Investigation note recorded.');
         fetchCase();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error || 'Failed to record note');
       }
     } finally {
       setSubmittingNote(false);
@@ -169,6 +227,13 @@ export const CaseDetails = () => {
   }
 
   const isAssignedInvestigator = user?.id === caseData.investigatorId || user?.role === 'ADMIN';
+  const myPendingRequest = caseData.assignmentRequests?.find(
+    (r: any) => r.investigatorId === user?.id && r.status === 'PENDING'
+  );
+  const myRejectedRequest = caseData.assignmentRequests?.find(
+    (r: any) => r.investigatorId === user?.id && r.status === 'REJECTED'
+  );
+  const pendingRequestsForAdmin = (caseData.assignmentRequests || []).filter((r: any) => r.status === 'PENDING');
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
@@ -196,21 +261,23 @@ export const CaseDetails = () => {
           </div>
         </div>
         
-        {/* Status Transition Selector */}
-        <div className="flex items-center space-x-2.5 bg-zinc-900 border border-zinc-800 px-3 py-1.5 rounded-xl self-start sm:self-auto shadow-sm">
-          <label className="text-xs text-zinc-400 font-medium">Case Status:</label>
-          <select 
-            value={caseData.status}
-            onChange={(e) => handleUpdateStatus(e.target.value)}
-            className="bg-zinc-950 border border-zinc-800 text-xs rounded-lg px-2.5 py-1.5 text-zinc-200 focus:outline-none focus:border-indigo-500 font-medium"
-          >
-            <option value="OPENED">Opened</option>
-            <option value="ASSIGNED">Assigned</option>
-            <option value="ACTIVE_INVESTIGATION">Active Investigation</option>
-            <option value="UNDER_REVIEW">Under Review</option>
-            <option value="CLOSED">Closed</option>
-          </select>
-        </div>
+        {/* Status Transition Selector (Only for assigned lead or admin) */}
+        {isAssignedInvestigator && (
+          <div className="flex items-center space-x-2.5 bg-zinc-900 border border-zinc-800 px-3 py-1.5 rounded-xl self-start sm:self-auto shadow-sm">
+            <label className="text-xs text-zinc-400 font-medium">Case Status:</label>
+            <select 
+              value={caseData.status}
+              onChange={(e) => handleUpdateStatus(e.target.value)}
+              className="bg-zinc-950 border border-zinc-800 text-xs rounded-lg px-2.5 py-1.5 text-zinc-200 focus:outline-none focus:border-indigo-500 font-medium"
+            >
+              <option value="OPENED">Opened</option>
+              <option value="ASSIGNED">Assigned</option>
+              <option value="ACTIVE_INVESTIGATION">Active Investigation</option>
+              <option value="UNDER_REVIEW">Under Review</option>
+              <option value="CLOSED">Closed</option>
+            </select>
+          </div>
+        )}
       </div>
 
       {/* Feedback banner */}
@@ -295,16 +362,20 @@ export const CaseDetails = () => {
               {caseData.caseNotes?.length === 0 ? (
                 <div className="text-center text-zinc-500 text-xs py-10 flex flex-col items-center">
                   <MessageSquare className="w-8 h-8 text-zinc-700 mb-2" />
-                  <span>No notes logged for this investigation. Add initial findings below.</span>
+                  <span>
+                    {!isAssignedInvestigator 
+                      ? 'Investigation notes are restricted to assigned personnel and administrators.' 
+                      : 'No notes logged for this investigation yet.'}
+                  </span>
                 </div>
               ) : (
                 caseData.caseNotes?.map((note: any) => (
                   <div key={note.id} className="bg-zinc-950/70 border border-zinc-800/80 rounded-lg p-3.5 space-y-1.5">
                     <div className="flex justify-between items-center text-xs">
                       <span className="font-semibold text-zinc-200 flex items-center gap-1.5">
-                        {note.author.name} 
+                        {note.author?.name || 'Authorized Officer'} 
                         <span className="text-zinc-500 text-[10px] font-mono uppercase bg-zinc-900 px-1.5 py-0.2 rounded border border-zinc-800">
-                          {note.author.role}
+                          {note.author?.role || 'INVESTIGATOR'}
                         </span>
                       </span>
                       <span className="text-[11px] text-zinc-500 flex items-center font-mono">
@@ -318,34 +389,42 @@ export const CaseDetails = () => {
               )}
             </div>
 
-            {/* Add Note Form */}
+            {/* Add Note Form or Restricted Notice */}
             <div className="p-4 border-t border-zinc-800 bg-zinc-950/60">
-              <form onSubmit={handleAddNote} className="flex flex-col sm:flex-row gap-2">
-                <input
-                  type="text"
-                  value={noteContent}
-                  onChange={e => setNoteContent(e.target.value)}
-                  placeholder="Record an investigation note, timeline event, or finding..."
-                  className="flex-1 bg-zinc-900 border border-zinc-800 rounded-lg px-3.5 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500"
-                />
-                <button 
-                  type="submit" 
-                  disabled={submittingNote || !noteContent.trim()}
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-xs font-semibold hover:bg-indigo-500 disabled:opacity-50 transition-colors flex items-center justify-center shrink-0 shadow-sm"
-                >
-                  <Send className="w-3.5 h-3.5 mr-1.5" />
-                  {submittingNote ? 'Saving...' : 'Add Note'}
-                </button>
-              </form>
+              {isAssignedInvestigator ? (
+                <form onSubmit={handleAddNote} className="flex flex-col sm:flex-row gap-2">
+                  <input
+                    type="text"
+                    value={noteContent}
+                    onChange={e => setNoteContent(e.target.value)}
+                    placeholder="Record an investigation note, timeline event, or finding..."
+                    className="flex-1 bg-zinc-900 border border-zinc-800 rounded-lg px-3.5 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500"
+                  />
+                  <button 
+                    type="submit" 
+                    disabled={submittingNote || !noteContent.trim()}
+                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-xs font-semibold hover:bg-indigo-500 disabled:opacity-50 transition-colors flex items-center justify-center shrink-0 shadow-sm"
+                  >
+                    <Send className="w-3.5 h-3.5 mr-1.5" />
+                    {submittingNote ? 'Saving...' : 'Add Note'}
+                  </button>
+                </form>
+              ) : (
+                <div className="text-center py-2 text-xs text-zinc-500 flex items-center justify-center gap-1.5">
+                  <Shield className="w-3.5 h-3.5 text-zinc-600" />
+                  <span>Case assignment is required to add investigation notes to this record.</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
 
         {/* Sidebar Info & Controls */}
         <div className="space-y-6">
-          {/* Assignment Card */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 sm:p-6 shadow-sm">
-            <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-3">Lead Investigator Assignment</h3>
+          {/* Lead Investigator Assignment Card */}
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 sm:p-6 shadow-sm space-y-4">
+            <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Lead Investigator Assignment</h3>
+            
             {caseData.investigator ? (
               <div className="space-y-3">
                 <div className="flex items-center space-x-3 p-3 bg-zinc-950 rounded-lg border border-zinc-800">
@@ -360,7 +439,7 @@ export const CaseDetails = () => {
                 {caseData.investigatorId === user?.id && (
                   <div className="text-[11px] text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-1.5 rounded-lg flex items-center">
                     <UserCheck className="w-3.5 h-3.5 mr-1.5 text-indigo-400 shrink-0" />
-                    <span>You are the assigned lead on this case.</span>
+                    <span>You are the authorized lead investigator on this case.</span>
                   </div>
                 )}
               </div>
@@ -368,20 +447,166 @@ export const CaseDetails = () => {
               <div className="space-y-3">
                 <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
                   <p className="text-xs text-amber-300 font-medium">Unassigned Case</p>
-                  <p className="text-[11px] text-zinc-400 mt-0.5">This investigation dossier currently has no designated lead.</p>
+                  <p className="text-[11px] text-zinc-400 mt-0.5">
+                    This investigation dossier currently has no designated lead investigator.
+                  </p>
                 </div>
+
+                {/* Investigator Role Assignment Request Workflow */}
                 {user?.role === 'INVESTIGATOR' && (
-                  <button 
-                    onClick={handleAssignSelf}
-                    className="w-full flex items-center justify-center px-3.5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold transition-colors shadow-sm"
-                  >
-                    <UserPlus className="w-3.5 h-3.5 mr-2" />
-                    Assign to me
-                  </button>
+                  <div>
+                    {myPendingRequest ? (
+                      <div className="p-3 bg-indigo-950/40 border border-indigo-500/30 rounded-lg space-y-1.5">
+                        <div className="flex items-center text-xs font-semibold text-indigo-300">
+                          <Hourglass className="w-3.5 h-3.5 mr-1.5 text-indigo-400 animate-spin" />
+                          Assignment Request Pending
+                        </div>
+                        <p className="text-[11px] text-zinc-400 leading-relaxed">
+                          Your request to lead this case was submitted on {new Date(myPendingRequest.createdAt).toLocaleDateString()}. An Administrator must approve your request before you can begin formal investigation work.
+                        </p>
+                      </div>
+                    ) : (
+                      <>
+                        {!showRequestForm ? (
+                          <div className="space-y-2">
+                            {myRejectedRequest && (
+                              <div className="p-2.5 bg-red-950/30 border border-red-800/40 rounded-lg text-[11px] text-red-300">
+                                <strong>Previous Request Rejected:</strong> {myRejectedRequest.notes || 'No reason specified.'}
+                              </div>
+                            )}
+                            <button 
+                              onClick={() => setShowRequestForm(true)}
+                              className="w-full flex items-center justify-center px-3.5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold transition-colors shadow-sm"
+                            >
+                              <UserPlus className="w-3.5 h-3.5 mr-2" />
+                              Request Case Assignment
+                            </button>
+                            <p className="text-[10px] text-zinc-500 text-center">
+                              Requires Administrator review and approval.
+                            </p>
+                          </div>
+                        ) : (
+                          <form onSubmit={handleRequestAssignment} className="p-3 bg-zinc-950 rounded-lg border border-zinc-800 space-y-3">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-semibold text-white">Request Case Lead</span>
+                              <button 
+                                type="button" 
+                                onClick={() => setShowRequestForm(false)} 
+                                className="text-zinc-500 hover:text-zinc-300 text-xs"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                            <div>
+                              <label className="block text-[11px] text-zinc-400 mb-1">
+                                Justification / Notes (Optional)
+                              </label>
+                              <textarea
+                                value={requestNotes}
+                                onChange={e => setRequestNotes(e.target.value)}
+                                placeholder="Explain expertise, availability, or context for leading this investigation..."
+                                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500 resize-none"
+                                rows={2}
+                              />
+                            </div>
+                            <button
+                              type="submit"
+                              disabled={submittingRequest}
+                              className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold disabled:opacity-50 transition-colors shadow-sm"
+                            >
+                              {submittingRequest ? 'Submitting Request...' : 'Submit Assignment Request'}
+                            </button>
+                          </form>
+                        )}
+                      </>
+                    )}
+                  </div>
                 )}
               </div>
             )}
           </div>
+
+          {/* Administrator Assignment Requests Review Panel */}
+          {user?.role === 'ADMIN' && pendingRequestsForAdmin.length > 0 && (
+            <div className="bg-zinc-900 border border-indigo-500/40 rounded-xl p-5 sm:p-6 shadow-sm space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-semibold text-indigo-400 uppercase tracking-wider flex items-center">
+                  <UserPlus className="w-3.5 h-3.5 mr-1.5" />
+                  Assignment Requests ({pendingRequestsForAdmin.length})
+                </h3>
+              </div>
+
+              <div className="space-y-3">
+                {pendingRequestsForAdmin.map((req: any) => (
+                  <div key={req.id} className="p-3 bg-zinc-950 rounded-lg border border-zinc-800 space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <p className="text-xs font-semibold text-white">{req.investigator?.name || 'Investigator'}</p>
+                        <p className="text-[11px] text-zinc-500">{req.investigator?.email}</p>
+                        <p className="text-[10px] text-zinc-500 font-mono mt-0.5">
+                          Requested: {new Date(req.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                        Pending
+                      </span>
+                    </div>
+
+                    {req.notes && (
+                      <p className="text-xs text-zinc-300 bg-zinc-900/80 p-2 rounded border border-zinc-800 italic">
+                        "{req.notes}"
+                      </p>
+                    )}
+
+                    {rejectingRequestId === req.id ? (
+                      <div className="space-y-2 pt-1">
+                        <textarea
+                          value={rejectionReason}
+                          onChange={e => setRejectionReason(e.target.value)}
+                          placeholder="Provide optional rejection rationale..."
+                          className="w-full bg-zinc-900 border border-zinc-800 rounded p-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-red-500 resize-none"
+                          rows={2}
+                        />
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleReviewRequest(req.id, 'REJECT')}
+                            disabled={reviewingRequestId === req.id}
+                            className="flex-1 py-1.5 bg-red-600 hover:bg-red-500 text-white rounded text-xs font-semibold disabled:opacity-50"
+                          >
+                            Confirm Reject
+                          </button>
+                          <button
+                            onClick={() => { setRejectingRequestId(null); setRejectionReason(''); }}
+                            className="px-3 py-1.5 bg-zinc-800 text-zinc-300 rounded text-xs"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 pt-1">
+                        <button
+                          onClick={() => handleReviewRequest(req.id, 'APPROVE')}
+                          disabled={reviewingRequestId === req.id}
+                          className="flex-1 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold transition-colors flex items-center justify-center disabled:opacity-50"
+                        >
+                          <Check className="w-3.5 h-3.5 mr-1" />
+                          Approve
+                        </button>
+                        <button
+                          onClick={() => { setRejectingRequestId(req.id); setRejectionReason(''); }}
+                          disabled={reviewingRequestId === req.id}
+                          className="py-1.5 px-3 bg-zinc-800 hover:bg-red-950/40 text-zinc-300 hover:text-red-400 border border-zinc-700 rounded-lg text-xs font-medium transition-colors"
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           
           {/* Origin & Metadata Card */}
           <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 sm:p-6 shadow-sm">

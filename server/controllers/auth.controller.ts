@@ -14,6 +14,7 @@ const registerSchema = z.object({
 const loginSchema = z.object({
   email: z.string().email(),
   password: z.string(),
+  requiredRole: z.enum(['COMPLAINANT', 'INVESTIGATOR', 'ADMIN']).optional(),
 });
 
 export const register = async (req: Request, res: Response) => {
@@ -72,7 +73,7 @@ export const register = async (req: Request, res: Response) => {
 
 export const login = async (req: Request, res: Response) => {
   try {
-    const { email, password } = loginSchema.parse(req.body);
+    const { email, password, requiredRole } = loginSchema.parse(req.body);
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
@@ -82,6 +83,17 @@ export const login = async (req: Request, res: Response) => {
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) {
       return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    if (requiredRole && user.role !== requiredRole) {
+      const roleLabels: Record<string, string> = {
+        COMPLAINANT: 'Complainant',
+        INVESTIGATOR: 'Investigator',
+        ADMIN: 'Administrator'
+      };
+      return res.status(403).json({
+        error: `Access Denied: This account is registered as ${roleLabels[user.role] || user.role}. You cannot sign in through the ${roleLabels[requiredRole] || requiredRole} portal.`
+      });
     }
 
     const token = generateToken(user.id, user.role);

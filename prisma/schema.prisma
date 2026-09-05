@@ -44,6 +44,12 @@ enum BlockchainStatus {
   ANCHOR_FAILED
 }
 
+enum AssignmentRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model User {
   id        String      @id @default(uuid())
   role      Role        @default(COMPLAINANT)
@@ -53,11 +59,13 @@ model User {
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
 
-  complaints      Complaint[]
-  auditLogs       AuditLog[]
-  assignedCases   Case[]      @relation("InvestigatorCases")
-  caseNotes       CaseNote[]
-  uploadedEvidence Evidence[] @relation("UserEvidence")
+  complaints         Complaint[]
+  auditLogs          AuditLog[]
+  assignedCases      Case[]                  @relation("InvestigatorCases")
+  caseNotes          CaseNote[]
+  uploadedEvidence   Evidence[]              @relation("UserEvidence")
+  assignmentRequests CaseAssignmentRequest[] @relation("InvestigatorRequests")
+  reviewedRequests   CaseAssignmentRequest[] @relation("ReviewerRequests")
 }
 
 model Complaint {
@@ -71,11 +79,26 @@ model Complaint {
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
+  userId           String
+  user             User              @relation(fields: [userId], references: [id])
   
-  caseId      String?  @unique
-  case        Case?    @relation(fields: [caseId], references: [id])
+  caseId           String?           @unique
+  case             Case?             @relation(fields: [caseId], references: [id])
+  supportingProofs SupportingProof[]
+}
+
+model SupportingProof {
+  id          String   @id @default(uuid())
+  complaintId String
+  fileName    String
+  fileSize    Int
+  mimeType    String
+  storageKey  String
+  createdAt   DateTime @default(now())
+
+  complaint   Complaint @relation(fields: [complaintId], references: [id], onDelete: Cascade)
+
+  @@index([complaintId])
 }
 
 model Case {
@@ -90,9 +113,29 @@ model Case {
   investigatorId String?
   investigator   User?      @relation("InvestigatorCases", fields: [investigatorId], references: [id])
 
-  complaint   Complaint?
-  evidence    Evidence[]
-  caseNotes   CaseNote[]
+  complaint          Complaint?
+  evidence           Evidence[]
+  caseNotes          CaseNote[]
+  assignmentRequests CaseAssignmentRequest[]
+}
+
+model CaseAssignmentRequest {
+  id             String                  @id @default(uuid())
+  caseId         String
+  investigatorId String
+  status         AssignmentRequestStatus @default(PENDING)
+  notes          String?
+  createdAt      DateTime                @default(now())
+  reviewedAt     DateTime?
+  reviewerId     String?
+
+  case         Case  @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  investigator User  @relation("InvestigatorRequests", fields: [investigatorId], references: [id])
+  reviewer     User? @relation("ReviewerRequests", fields: [reviewerId], references: [id])
+
+  @@index([caseId])
+  @@index([investigatorId])
+  @@index([status])
 }
 
 model CaseNote {

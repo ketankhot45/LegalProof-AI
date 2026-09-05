@@ -13,7 +13,12 @@ import {
   Tag, 
   AlertCircle,
   FileCheck,
-  Check
+  Check,
+  Paperclip,
+  Download,
+  FileText,
+  Shield,
+  Info
 } from 'lucide-react';
 
 export const ComplaintDetails = () => {
@@ -25,9 +30,11 @@ export const ComplaintDetails = () => {
   const [error, setError] = useState<string | null>(null);
   const [reviewAction, setReviewAction] = useState('');
   const [rejectionReason, setRejectionReason] = useState('');
+  const [selectedPriority, setSelectedPriority] = useState<string>('MEDIUM');
   const [validationError, setValidationError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
+  const [downloadingProofId, setDownloadingProofId] = useState<string | null>(null);
 
   const fetchComplaint = () => {
     setError(null);
@@ -56,6 +63,39 @@ export const ComplaintDetails = () => {
     fetchComplaint();
   }, [id]);
 
+  const formatFileSize = (bytes: number) => {
+    if (!bytes || bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const handleDownloadProof = async (proofId: string, fileName: string) => {
+    try {
+      setDownloadingProofId(proofId);
+      const res = await fetch(`/api/v1/complaints/${id}/proofs/${proofId}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+
+      if (!res.ok) throw new Error('Failed to download supporting proof');
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err: any) {
+      alert(err.message || 'Error downloading file');
+    } finally {
+      setDownloadingProofId(null);
+    }
+  };
+
   const handleReview = async () => {
     setValidationError(null);
     setActionSuccess(null);
@@ -74,7 +114,11 @@ export const ComplaintDetails = () => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify({ action: reviewAction, rejectionReason: rejectionReason.trim() }),
+        body: JSON.stringify({ 
+          action: reviewAction, 
+          rejectionReason: rejectionReason.trim(),
+          priority: reviewAction === 'ESCALATE' ? selectedPriority : undefined,
+        }),
       });
       
       const data = await res.json();
@@ -89,7 +133,7 @@ export const ComplaintDetails = () => {
       });
       setActionSuccess(
         reviewAction === 'ESCALATE' 
-          ? 'Complaint successfully escalated to a formal Case investigation.' 
+          ? `Complaint successfully escalated to a formal Case investigation with ${selectedPriority} priority.` 
           : reviewAction === 'REJECT'
           ? 'Complaint marked as Rejected.'
           : 'Complaint status updated to Under Review.'
@@ -192,14 +236,78 @@ export const ComplaintDetails = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content Body */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
-            <h3 className="text-xl font-semibold text-white mb-4 break-words">{complaint.title}</h3>
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 space-y-5">
+            <div>
+              <h3 className="text-xl font-semibold text-white mb-2 break-words">{complaint.title}</h3>
+              <div className="text-xs text-zinc-400 flex items-center space-x-2">
+                <Tag className="w-3.5 h-3.5 text-zinc-500" />
+                <span>Category: <strong className="text-zinc-200">{complaint.category || 'General Incident'}</strong></span>
+              </div>
+            </div>
             
-            <div className="mb-6">
-              <h4 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Statement of Fact / Description</h4>
+            <div>
+              <h4 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">Statement of Fact / Description</h4>
               <div className="p-4 bg-zinc-950 rounded-lg border border-zinc-800 text-zinc-300 text-sm leading-relaxed whitespace-pre-wrap">
                 {complaint.description}
               </div>
+            </div>
+
+            {/* Supporting Proof Section */}
+            <div className="pt-4 border-t border-zinc-800">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider flex items-center">
+                  <Paperclip className="w-3.5 h-3.5 mr-1.5 text-indigo-400" />
+                  Supporting Proof (Optional Intake Material)
+                </h4>
+                {complaint.supportingProofs && complaint.supportingProofs.length > 0 && (
+                  <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700">
+                    {complaint.supportingProofs.length} File Attached
+                  </span>
+                )}
+              </div>
+
+              {complaint.supportingProofs && complaint.supportingProofs.length > 0 ? (
+                <div className="space-y-3">
+                  {complaint.supportingProofs.map((proof: any) => (
+                    <div 
+                      key={proof.id}
+                      className="p-3.5 bg-zinc-950 border border-zinc-800 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                    >
+                      <div className="flex items-center space-x-3 min-w-0">
+                        <div className="p-2 bg-indigo-500/15 text-indigo-400 rounded-lg border border-indigo-500/30 shrink-0">
+                          <FileText className="w-5 h-5" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-semibold text-zinc-200 truncate">{proof.fileName}</p>
+                          <p className="text-[11px] text-zinc-500 font-mono mt-0.5">
+                            {formatFileSize(proof.fileSize)} • Uploaded {new Date(proof.createdAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => handleDownloadProof(proof.id, proof.fileName)}
+                        disabled={downloadingProofId === proof.id}
+                        className="inline-flex items-center justify-center px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-lg text-xs font-medium transition-colors border border-zinc-700 shrink-0 self-start sm:self-auto disabled:opacity-50"
+                      >
+                        <Download className="w-3.5 h-3.5 mr-1.5 text-indigo-400" />
+                        {downloadingProofId === proof.id ? 'Downloading...' : 'Download Proof'}
+                      </button>
+                    </div>
+                  ))}
+
+                  <div className="p-3 bg-zinc-950/60 border border-zinc-800/80 rounded-lg flex items-start space-x-2 text-[11px] text-zinc-400 leading-relaxed">
+                    <Info className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
+                    <span>
+                      <strong>Intake Notice:</strong> This material was submitted informally by the complainant during initial report intake. It is not formal chain-of-custody evidence and is not anchored to the blockchain.
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-4 bg-zinc-950/50 rounded-lg border border-zinc-800/60 text-center">
+                  <p className="text-xs text-zinc-500 italic">No informal supporting proof attached during initial intake.</p>
+                </div>
+              )}
             </div>
             
             {complaint.rejectionReason && (
@@ -254,8 +362,8 @@ export const ComplaintDetails = () => {
                 <dd className="mt-1 font-medium text-zinc-200">{complaint.category || 'General Incident'}</dd>
               </div>
               <div>
-                <dt className="text-zinc-500">Priority Level</dt>
-                <dd className="mt-1 font-medium text-zinc-200">{complaint.priority || 'Standard'}</dd>
+                <dt className="text-zinc-500">Official Priority Level</dt>
+                <dd className="mt-1 font-medium text-zinc-200">{complaint.priority || 'Assigned on Escalation'}</dd>
               </div>
               <div>
                 <dt className="text-zinc-500">Complainant / Submitter</dt>
@@ -284,23 +392,6 @@ export const ComplaintDetails = () => {
                     <Briefcase className="w-3.5 h-3.5 mr-1.5" />
                     Escalated to Formal Case
                   </dd>
-                </div>
-              )}
-              {complaint.clientHash && (
-                <div className="pt-2 border-t border-zinc-800/60">
-                  <dt className="text-zinc-500">Client SHA-256 Hash</dt>
-                  <dd className="mt-1 font-mono text-[11px] text-zinc-300 break-all bg-zinc-950 p-2 rounded border border-zinc-800 select-all">
-                    {complaint.clientHash}
-                  </dd>
-                  <div className="mt-2">
-                    <Link
-                      to={`/verify?hash=${complaint.clientHash}`}
-                      className="inline-flex items-center text-xs text-indigo-400 hover:text-indigo-300 transition-colors font-medium"
-                    >
-                      <FileCheck className="w-3.5 h-3.5 mr-1.5" />
-                      Verify on Public Ledger →
-                    </Link>
-                  </div>
                 </div>
               )}
             </dl>
@@ -378,12 +469,30 @@ export const ComplaintDetails = () => {
                     </div>
                     <p className="text-[11px] text-zinc-400 leading-relaxed">
                       {reviewAction === 'ESCALATE'
-                        ? 'This will immediately generate a formal Case investigation dossier linked to this complaint and notify assigned personnel.'
+                        ? 'This will immediately generate a formal Case investigation dossier linked to this complaint and assign the initial investigation priority.'
                         : reviewAction === 'APPROVE'
                         ? 'Update this complaint status from Submitted to Under Review while preliminary facts are checked.'
                         : 'Reject this complaint and provide mandatory rationale to the complainant.'}
                     </p>
                   </div>
+
+                  {reviewAction === 'ESCALATE' && (
+                    <div>
+                      <label className="block text-[11px] font-medium text-zinc-400 mb-1.5">
+                        Assign Initial Case Priority <span className="text-indigo-400">*</span>
+                      </label>
+                      <select
+                        value={selectedPriority}
+                        onChange={e => setSelectedPriority(e.target.value)}
+                        className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-zinc-100 focus:border-indigo-500 focus:outline-none text-xs font-medium"
+                      >
+                        <option value="LOW">Low Priority</option>
+                        <option value="MEDIUM">Medium Priority</option>
+                        <option value="HIGH">High Priority</option>
+                        <option value="CRITICAL">Critical Priority</option>
+                      </select>
+                    </div>
+                  )}
 
                   {reviewAction === 'REJECT' && (
                     <div>

@@ -21,6 +21,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/login/:portalRole" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/verify" element={<PublicVerify />} />
         
