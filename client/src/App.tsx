@@ -12,6 +12,7 @@ import { CasesList } from './pages/CasesList';
 import { CaseDetails } from './pages/CaseDetails';
 import { EvidenceUpload } from './pages/EvidenceUpload';
 import { EvidenceDetails } from './pages/EvidenceDetails';
+import { EvidenceVault } from './pages/EvidenceVault';
 import { PublicVerify } from './pages/PublicVerify';
 
 export default function App() {
@@ -31,6 +32,7 @@ export default function App() {
           <Route path="/cases" element={<CasesList />} />
           <Route path="/cases/:id" element={<CaseDetails />} />
           <Route path="/cases/:caseId/evidence/upload" element={<EvidenceUpload />} />
+          <Route path="/evidence" element={<EvidenceVault />} />
           <Route path="/evidence/:id" element={<EvidenceDetails />} />
         </Route>
       </Routes>

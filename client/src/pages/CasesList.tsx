@@ -26,6 +26,7 @@ export const CasesList = () => {
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [quickFilter, setQuickFilter] = useState<QuickFilter>('ALL');
   const [refreshing, setRefreshing] = useState(false);
+  const [claimingId, setClaimingId] = useState<string | null>(null);
 
   const fetchCases = (isManual = false) => {
     if (isManual) setRefreshing(true);
@@ -47,6 +48,35 @@ export const CasesList = () => {
         setLoading(false);
         if (isManual) setRefreshing(false);
       });
+  };
+
+  const handleClaimCase = async (e: React.MouseEvent, caseId: string) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (!user || user.role !== 'INVESTIGATOR') return;
+
+    setClaimingId(caseId);
+    try {
+      const res = await fetch(`/api/v1/cases/${caseId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ investigatorId: user.id, status: 'ASSIGNED' }),
+      });
+      if (res.ok) {
+        fetchCases();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setError(data.message || 'Failed to claim case');
+      }
+    } catch (err: any) {
+      console.error(err);
+      setError('Failed to claim case');
+    } finally {
+      setClaimingId(null);
+    }
   };
 
   useEffect(() => {
@@ -403,21 +433,60 @@ export const CasesList = () => {
                             )}
                           </span>
                         ) : (
-                          <span className="text-amber-400/90 font-medium italic bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 text-[11px]">
-                            Unassigned (Triage)
-                          </span>
+                          <div className="flex items-center space-x-2">
+                            <span className="text-amber-400/90 font-medium italic bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 text-[11px]">
+                              Unassigned
+                            </span>
+                            {user?.role === 'INVESTIGATOR' && (
+                              <button
+                                type="button"
+                                onClick={(e) => handleClaimCase(e, c.id)}
+                                disabled={claimingId === c.id}
+                                className="inline-flex items-center px-2 py-0.5 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 rounded text-[11px] font-medium transition-colors disabled:opacity-50"
+                              >
+                                {claimingId === c.id ? (
+                                  <>
+                                    <RefreshCw className="w-2.5 h-2.5 mr-1 animate-spin" />
+                                    Claiming...
+                                  </>
+                                ) : (
+                                  <>
+                                    <UserCheck className="w-2.5 h-2.5 mr-1 text-indigo-400" />
+                                    Assign to me
+                                  </>
+                                )}
+                              </button>
+                            )}
+                          </div>
                         )}
                       </td>
                       <td className="px-6 py-4 text-xs text-zinc-400 whitespace-nowrap">
                         {new Date(c.createdAt).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4 text-right whitespace-nowrap">
-                        <Link 
-                          to={`/cases/${c.id}`} 
-                          className="inline-flex items-center text-xs font-semibold text-indigo-400 hover:text-indigo-300 bg-indigo-600/10 hover:bg-indigo-600/20 px-3 py-1.5 rounded-lg border border-indigo-500/30 transition-colors"
-                        >
-                          Manage <ArrowRight className="w-3 h-3 ml-1" />
-                        </Link>
+                        <div className="inline-flex items-center justify-end space-x-2">
+                          {!c.investigatorId && user?.role === 'INVESTIGATOR' && (
+                            <button
+                              type="button"
+                              onClick={(e) => handleClaimCase(e, c.id)}
+                              disabled={claimingId === c.id}
+                              className="inline-flex items-center text-xs font-medium text-indigo-300 hover:text-white bg-indigo-600/20 hover:bg-indigo-600/40 px-2.5 py-1.5 rounded-lg border border-indigo-500/30 transition-colors disabled:opacity-50"
+                            >
+                              {claimingId === c.id ? (
+                                <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
+                              ) : (
+                                <UserCheck className="w-3 h-3 mr-1 text-indigo-400" />
+                              )}
+                              Assign to me
+                            </button>
+                          )}
+                          <Link 
+                            to={`/cases/${c.id}`} 
+                            className="inline-flex items-center text-xs font-semibold text-indigo-400 hover:text-indigo-300 bg-indigo-600/10 hover:bg-indigo-600/20 px-3 py-1.5 rounded-lg border border-indigo-500/30 transition-colors"
+                          >
+                            Manage <ArrowRight className="w-3 h-3 ml-1" />
+                          </Link>
+                        </div>
                       </td>
                     </tr>
                   ))}

@@ -12,7 +12,9 @@ import {
   Menu,
   X,
   Radio,
-  ExternalLink
+  ExternalLink,
+  FolderLock,
+  PlusCircle
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -36,39 +38,68 @@ export const DashboardLayout = () => {
     return <Navigate to="/login" replace />;
   }
 
-  const isInvestigator = user.role === 'INVESTIGATOR' || user.role === 'ADMIN';
+  const isComplainant = user.role === 'COMPLAINANT';
 
-  const navItems = [
-    {
-      label: 'Command Center',
-      path: '/dashboard',
-      icon: LayoutDashboard,
-      roles: ['COMPLAINANT', 'INVESTIGATOR', 'ADMIN']
-    },
-    {
-      label: 'Complaints',
-      path: '/complaints',
-      icon: FileText,
-      roles: ['COMPLAINANT', 'INVESTIGATOR', 'ADMIN']
-    },
-    {
-      label: 'Cases & Vault',
-      path: '/cases',
-      icon: Briefcase,
-      roles: ['INVESTIGATOR', 'ADMIN']
-    },
-    {
-      label: 'Public Verification',
-      path: '/verify',
-      icon: CheckCircle,
-      roles: ['COMPLAINANT', 'INVESTIGATOR', 'ADMIN']
-    }
-  ];
-
-  const filteredNav = navItems.filter(item => item.roles.includes(user.role));
+  const navItems = isComplainant
+    ? [
+        {
+          label: 'Dashboard',
+          path: '/dashboard',
+          icon: LayoutDashboard,
+        },
+        {
+          label: 'My Complaints',
+          path: '/complaints',
+          icon: FileText,
+        },
+        {
+          label: 'New Complaint',
+          path: '/complaints/new',
+          icon: PlusCircle,
+        },
+        {
+          label: 'Public Verification',
+          path: '/verify',
+          icon: CheckCircle,
+        }
+      ]
+    : [
+        {
+          label: 'Dashboard',
+          path: '/dashboard',
+          icon: LayoutDashboard,
+        },
+        {
+          label: 'Complaints',
+          path: '/complaints',
+          icon: FileText,
+        },
+        {
+          label: 'Cases',
+          path: '/cases',
+          icon: Briefcase,
+        },
+        {
+          label: 'Evidence Vault',
+          path: '/evidence',
+          icon: FolderLock,
+        },
+        {
+          label: 'Public Verification',
+          path: '/verify',
+          icon: CheckCircle,
+        }
+      ];
 
   const isActiveRoute = (path: string) => {
     if (path === '/dashboard') return location.pathname === '/dashboard';
+    if (path === '/complaints/new') return location.pathname === '/complaints/new';
+    if (path === '/complaints') {
+      return location.pathname === '/complaints' || (location.pathname.startsWith('/complaints/') && location.pathname !== '/complaints/new');
+    }
+    if (path === '/evidence') {
+      return location.pathname === '/evidence' || location.pathname.startsWith('/evidence/');
+    }
     return location.pathname.startsWith(path);
   };
 
@@ -107,7 +138,7 @@ export const DashboardLayout = () => {
             </div>
 
             <nav className="flex-1 space-y-1.5 overflow-y-auto">
-              {filteredNav.map((item) => {
+              {navItems.map((item) => {
                 const active = isActiveRoute(item.path);
                 const Icon = item.icon;
                 return (
@@ -162,7 +193,7 @@ export const DashboardLayout = () => {
           <div className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
             Workspace
           </div>
-          {filteredNav.map((item) => {
+          {navItems.map((item) => {
             const active = isActiveRoute(item.path);
             const Icon = item.icon;
             return (

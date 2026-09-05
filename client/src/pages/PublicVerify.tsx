@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   ShieldCheck, 
   ShieldAlert, 
@@ -16,10 +16,14 @@ import {
   Cpu,
   AlertCircle
 } from 'lucide-react';
-import { Link, useNavigate } from 'react-router';
+import { Link, useNavigate, useSearchParams } from 'react-router';
 
 export const PublicVerify = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const queryHash = searchParams.get('hash');
+  const autoVerifiedRef = useRef(false);
+
   const [file, setFile] = useState<File | null>(null);
   const [calculatingHash, setCalculatingHash] = useState(false);
   const [computedHash, setComputedHash] = useState<string | null>(null);
@@ -32,6 +36,23 @@ export const PublicVerify = () => {
   const [manualHashInput, setManualHashInput] = useState('');
   const [manualInputError, setManualInputError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'file' | 'hash'>('file');
+
+  useEffect(() => {
+    if (queryHash && !autoVerifiedRef.current) {
+      autoVerifiedRef.current = true;
+      const cleaned = queryHash.trim().toLowerCase();
+      const rawHash = cleaned.startsWith('0x') ? cleaned.slice(2) : cleaned;
+
+      setManualHashInput(queryHash);
+      setActiveTab('hash');
+
+      if (/^[a-f0-9]{64}$/i.test(rawHash)) {
+        setComputedHash(rawHash);
+        setFile(null);
+        verifyHashOnBlockchain(rawHash);
+      }
+    }
+  }, [queryHash]);
 
   const handleBack = () => {
     if (window.history.length > 1) {

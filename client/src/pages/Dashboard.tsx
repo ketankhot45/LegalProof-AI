@@ -17,7 +17,8 @@ import {
   Layers,
   FileCheck2,
   FileX2,
-  UserCheck
+  UserCheck,
+  FolderLock
 } from 'lucide-react';
 
 export const Dashboard = () => {
@@ -340,11 +341,17 @@ export const Dashboard = () => {
               <p className="text-[11px] text-zinc-500 mt-1">Complaints to triage</p>
             </div>
 
-            <div className="bg-zinc-900 border border-zinc-800 p-4 rounded-xl">
-              <span className="text-[11px] font-medium text-zinc-400 uppercase tracking-wider">Evidence Vault</span>
+            <Link 
+              to="/evidence" 
+              className="bg-zinc-900 hover:bg-zinc-800/80 border border-zinc-800 hover:border-zinc-700 p-4 rounded-xl transition-all group block"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-medium text-zinc-400 uppercase tracking-wider group-hover:text-zinc-300">Evidence Vault</span>
+                <ArrowRight className="w-3.5 h-3.5 text-zinc-600 group-hover:text-zinc-400 group-hover:translate-x-0.5 transition-all" />
+              </div>
               <p className="text-2xl font-bold text-white mt-2">{data?.stats?.totalEvidence || 0}</p>
               <p className="text-[11px] text-zinc-500 mt-1">Digital artifacts stored</p>
-            </div>
+            </Link>
 
             <div className="bg-zinc-900 border border-zinc-800 p-4 rounded-xl">
               <span className="text-[11px] font-medium text-zinc-400 uppercase tracking-wider">Verified Integrity</span>
@@ -362,7 +369,7 @@ export const Dashboard = () => {
           </div>
 
           {/* Quick Actions Banner */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <Link
               to="/complaints"
               className="p-4 bg-zinc-900/60 hover:bg-zinc-900 border border-zinc-800 hover:border-amber-500/40 rounded-xl transition-all flex items-center justify-between"
@@ -372,8 +379,8 @@ export const Dashboard = () => {
                   <FileText className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-medium text-white">Review Incoming Complaints</h4>
-                  <p className="text-xs text-zinc-500">Triage, review or escalate new submissions</p>
+                  <h4 className="text-sm font-medium text-white">Review Complaints</h4>
+                  <p className="text-xs text-zinc-500">Triage incoming submissions</p>
                 </div>
               </div>
               <ArrowRight className="w-4 h-4 text-zinc-600" />
@@ -388,8 +395,24 @@ export const Dashboard = () => {
                   <Briefcase className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-medium text-white">Manage Active Investigations</h4>
-                  <p className="text-xs text-zinc-500">Case notes, evidence uploads and progress</p>
+                  <h4 className="text-sm font-medium text-white">Active Cases</h4>
+                  <p className="text-xs text-zinc-500">Manage case investigations</p>
+                </div>
+              </div>
+              <ArrowRight className="w-4 h-4 text-zinc-600" />
+            </Link>
+
+            <Link
+              to="/evidence"
+              className="p-4 bg-zinc-900/60 hover:bg-zinc-900 border border-zinc-800 hover:border-cyan-500/40 rounded-xl transition-all flex items-center justify-between"
+            >
+              <div className="flex items-center space-x-3">
+                <div className="p-2.5 bg-cyan-500/10 text-cyan-400 rounded-lg">
+                  <FolderLock className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium text-white">Evidence Vault</h4>
+                  <p className="text-xs text-zinc-500">Cryptographic artifact storage</p>
                 </div>
               </div>
               <ArrowRight className="w-4 h-4 text-zinc-600" />
@@ -404,8 +427,8 @@ export const Dashboard = () => {
                   <CheckCircle className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-medium text-white">Public Verification Tool</h4>
-                  <p className="text-xs text-zinc-500">Independent SHA-256 blockchain verification</p>
+                  <h4 className="text-sm font-medium text-white">Public Verification</h4>
+                  <p className="text-xs text-zinc-500">On-chain SHA-256 validation</p>
                 </div>
               </div>
               <ArrowRight className="w-4 h-4 text-zinc-600" />

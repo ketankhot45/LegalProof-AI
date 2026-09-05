@@ -464,7 +464,7 @@ export const EvidenceDetails = () => {
           </button>
 
           <Link
-            to="/verify"
+            to={evidence.sha256Hash ? `/verify?hash=${evidence.sha256Hash}` : '/verify'}
             className="inline-flex items-center px-3.5 py-2 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 rounded-xl text-xs font-semibold transition-colors"
           >
             <ShieldCheck className="w-3.5 h-3.5 mr-1.5 text-indigo-400" />
