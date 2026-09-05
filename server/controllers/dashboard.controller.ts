@@ -59,6 +59,30 @@ export const getDashboardStats = async (req: Request, res: Response) => {
       });
     } else {
       // INVESTIGATOR or ADMIN
+      const isInvestigator = user.role === 'INVESTIGATOR';
+
+      const custodyLogWhere = isInvestigator
+        ? {
+            evidence: {
+              case: {
+                OR: [
+                  { investigatorId: user.id },
+                  { investigatorId: null }
+                ]
+              }
+            }
+          }
+        : {};
+
+      const casesWhere = isInvestigator
+        ? {
+            OR: [
+              { investigatorId: user.id },
+              { investigatorId: null }
+            ]
+          }
+        : {};
+
       const [
         totalCases,
         activeCases,
@@ -73,23 +97,44 @@ export const getDashboardStats = async (req: Request, res: Response) => {
         recentCustodyLogs,
         recentCases
       ] = await Promise.all([
-        prisma.case.count(),
+        prisma.case.count({ where: casesWhere }),
         prisma.case.count({
-          where: { status: { in: ['OPENED', 'ASSIGNED', 'ACTIVE_INVESTIGATION', 'UNDER_REVIEW'] } }
+          where: { 
+            ...casesWhere,
+            status: { in: ['OPENED', 'ASSIGNED', 'ACTIVE_INVESTIGATION', 'UNDER_REVIEW'] } 
+          }
         }),
         prisma.case.count({
           where: { investigatorId: user.id, status: { not: 'CLOSED' } }
         }),
-        prisma.case.count({ where: { status: 'CLOSED' } }),
+        prisma.case.count({ where: { ...casesWhere, status: 'CLOSED' } }),
         prisma.complaint.count({
           where: { status: { in: ['SUBMITTED', 'UNDER_REVIEW'] } }
         }),
         prisma.complaint.count(),
-        prisma.evidence.count(),
-        prisma.evidence.count({ where: { status: 'VERIFIED' } }),
-        prisma.evidence.count({ where: { status: 'INTEGRITY_FAILED' } }),
-        prisma.evidence.count({ where: { blockchainStatus: 'ANCHORED' } }),
+        prisma.evidence.count({
+          where: isInvestigator ? { case: casesWhere } : {}
+        }),
+        prisma.evidence.count({ 
+          where: { 
+            ...(isInvestigator ? { case: casesWhere } : {}),
+            status: 'VERIFIED' 
+          } 
+        }),
+        prisma.evidence.count({ 
+          where: { 
+            ...(isInvestigator ? { case: casesWhere } : {}),
+            status: 'INTEGRITY_FAILED' 
+          } 
+        }),
+        prisma.evidence.count({ 
+          where: { 
+            ...(isInvestigator ? { case: casesWhere } : {}),
+            blockchainStatus: 'ANCHORED' 
+          } 
+        }),
         prisma.chainOfCustodyLog.findMany({
+          where: custodyLogWhere,
           take: 8,
           orderBy: { timestamp: 'desc' },
           include: {
@@ -105,6 +150,7 @@ export const getDashboardStats = async (req: Request, res: Response) => {
           }
         }),
         prisma.case.findMany({
+          where: casesWhere,
           take: 5,
           orderBy: { createdAt: 'desc' },
           include: {

@@ -415,7 +415,7 @@ export const EvidenceDetails = () => {
   const isPdf = mime === 'application/pdf' || /\.pdf$/i.test(fileName);
   const isAudio = mime.startsWith('audio/') || /\.(mp3|wav|ogg|m4a|aac|flac)$/i.test(fileName);
   const isText = mime.startsWith('text/') || mime === 'application/json' || /\.(txt|csv|json|md|log|xml|tsv|env)$/i.test(fileName);
-  const isInvestigator = user?.role === 'INVESTIGATOR' || user?.role === 'ADMIN';
+  const isInvestigator = user?.role === 'ADMIN' || (user?.role === 'INVESTIGATOR' && (!evidence?.case?.investigatorId || evidence?.case?.investigatorId === user?.id));
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 pb-12">
@@ -824,7 +824,8 @@ export const EvidenceDetails = () => {
                 <button
                   type="button"
                   onClick={handleAnalyze}
-                  disabled={analyzing}
+                  disabled={analyzing || evidence.status !== 'VERIFIED'}
+                  title={evidence.status !== 'VERIFIED' ? 'Cryptographic integrity must be verified before running AI analysis' : ''}
                   className="inline-flex items-center justify-center px-3.5 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-semibold transition-all disabled:opacity-50 shadow-sm shrink-0"
                 >
                   {analyzing ? (
@@ -840,6 +841,7 @@ export const EvidenceDetails = () => {
                   )}
                 </button>
               )}
+
             </div>
 
             <div className="p-5 sm:p-6 space-y-6">

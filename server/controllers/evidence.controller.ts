@@ -243,6 +243,16 @@ export const downloadEvidence = async (req: AuthRequest, res: Response) => {
       }
     });
 
+    await prisma.auditLog.create({
+      data: {
+        userId: req.user!.id,
+        action: 'EVIDENCE_DOWNLOADED_OR_VIEWED',
+        resource: `Evidence:${evidence.id}`,
+        details: `Evidence ${evidence.fileName} downloaded or viewed by ${req.user!.role}`,
+        ipAddress: req.ip,
+      }
+    });
+
     res.setHeader('Content-Type', evidence.mimeType || 'application/octet-stream');
     res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(evidence.fileName)}"`);
     if (streamData.contentLength) {
@@ -294,11 +304,29 @@ export const verifyEvidenceIntegrity = async (req: AuthRequest, res: Response) =
 
     const verified = serverHash.toLowerCase() === evidence.sha256Hash?.toLowerCase();
 
+    // Update status based on cryptographic verification result
+    await prisma.evidence.update({
+      where: { id: evidence.id },
+      data: {
+        status: verified ? 'VERIFIED' : 'INTEGRITY_FAILED'
+      }
+    });
+
     await prisma.chainOfCustodyLog.create({
       data: {
         evidenceId: evidence.id,
         actorId: req.user!.id,
         action: verified ? 'INTEGRITY_VERIFIED_MANUALLY' : 'INTEGRITY_VERIFICATION_FAILED_MANUALLY',
+        ipAddress: req.ip,
+      }
+    });
+
+    await prisma.auditLog.create({
+      data: {
+        userId: req.user!.id,
+        action: verified ? 'EVIDENCE_INTEGRITY_VERIFIED' : 'EVIDENCE_INTEGRITY_FAILED',
+        resource: `Evidence:${evidence.id}`,
+        details: verified ? `Integrity check passed: SHA-256 digest confirmed for ${evidence.fileName}` : `Integrity check failed: digest mismatch for ${evidence.fileName}`,
         ipAddress: req.ip,
       }
     });
@@ -367,16 +395,19 @@ export const analyzeEvidenceController = async (req: AuthRequest, res: Response)
       return res.status(404).json({ error: 'Evidence not found' });
     }
 
-    // Authz check
+    // Authz check: Only ADMIN or the assigned lead INVESTIGATOR can run AI analysis
     const c = evidence.case;
     if (req.user!.role === 'COMPLAINANT') {
-      if (!c.complaint || c.complaint.userId !== req.user!.id) {
-        return res.status(403).json({ error: 'Forbidden' });
-      }
+      return res.status(403).json({ error: 'Forbidden: Only the assigned lead investigator or an administrator can run AI evidence analysis' });
     } else if (req.user!.role === 'INVESTIGATOR') {
       if (!c.investigatorId || c.investigatorId !== req.user!.id) {
-        return res.status(403).json({ error: 'Forbidden: Case must be explicitly assigned to you to analyze this evidence' });
+        return res.status(403).json({ error: 'Forbidden: Case must be explicitly assigned to you to run AI evidence analysis' });
       }
+    }
+
+    // Invariant: AI analysis should only be performed on evidence with verified integrity
+    if (evidence.status !== 'VERIFIED') {
+      return res.status(400).json({ error: 'AI analysis can only be performed on evidence with VERIFIED cryptographic integrity status.' });
     }
 
     const fileBuffer = await getEvidenceBuffer(evidence.storageUrl);
@@ -385,14 +416,29 @@ export const analyzeEvidenceController = async (req: AuthRequest, res: Response)
     }
 
     // Run AI analysis
-    const analysis = await runAIAnalysis({
-      evidenceId: evidence.id,
-      filePathOrBuffer: fileBuffer,
-      mimeType: evidence.mimeType,
-      fileName: evidence.fileName,
-    });
+    let analysis;
+    try {
+      analysis = await runAIAnalysis({
+        evidenceId: evidence.id,
+        filePathOrBuffer: fileBuffer,
+        mimeType: evidence.mimeType,
+        fileName: evidence.fileName,
+      });
+    } catch (aiErr: any) {
+      // Record failure audit log without leaking sensitive info
+      await prisma.auditLog.create({
+        data: {
+          userId: req.user!.id,
+          action: 'EVIDENCE_AI_ANALYSIS_FAILED',
+          resource: `Evidence:${evidence.id}`,
+          details: `AI analysis attempt failed for ${evidence.fileName}: ${aiErr?.message || 'Processing error'}`,
+          ipAddress: req.ip,
+        }
+      });
+      return res.status(500).json({ error: aiErr?.message || 'Failed to process AI evidence analysis' });
+    }
 
-    // Save summary into DB
+    // Save summary into DB - isolated from evidence file and blockchain state
     const updatedEvidence = await prisma.evidence.update({
       where: { id: evidence.id },
       data: {
@@ -400,7 +446,7 @@ export const analyzeEvidenceController = async (req: AuthRequest, res: Response)
       }
     });
 
-    // Record Chain of Custody & Audit logs
+    // Record Chain of Custody & Audit logs on confirmed success
     await prisma.chainOfCustodyLog.create({
       data: {
         evidenceId: evidence.id,

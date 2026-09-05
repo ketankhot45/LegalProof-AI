@@ -7,7 +7,7 @@ import { GoogleGenAI } from '@google/genai';
 export const getGeminiClient = (): GoogleGenAI => {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    throw new Error('GEMINI_API_KEY environment variable is missing.');
+    throw new Error('GEMINI_API_KEY environment variable is not configured.');
   }
 
   return new GoogleGenAI({
@@ -23,7 +23,7 @@ export const getGeminiClient = (): GoogleGenAI => {
 /**
  * Recommended default model for basic text, OCR, document analysis, and entity extraction.
  */
-export const GEMINI_MODEL = 'gemini-3.6-flash';
+export const GEMINI_MODEL = 'gemini-2.5-flash';
 
 /**
  * Utility to retry AI calls on transient rate limits (429) or high demand (503).
@@ -44,7 +44,8 @@ export const callWithRetry = async <T>(
         msg.includes('503') ||
         msg.includes('429') ||
         msg.includes('UNAVAILABLE') ||
-        msg.includes('high demand')
+        msg.includes('high demand') ||
+        msg.includes('ResourceExhausted')
       ) {
         if (attempt < maxRetries) {
           await new Promise((res) => setTimeout(res, delayMs * attempt));
@@ -56,3 +57,4 @@ export const callWithRetry = async <T>(
   }
   throw lastError;
 };
+

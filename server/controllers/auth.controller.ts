@@ -77,11 +77,28 @@ export const login = async (req: Request, res: Response) => {
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
+      await prisma.auditLog.create({
+        data: {
+          action: 'AUTH_LOGIN_FAILED',
+          resource: 'Auth:Login',
+          details: `Failed authentication for email: ${email}`,
+          ipAddress: req.ip,
+        }
+      }).catch(() => {});
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) {
+      await prisma.auditLog.create({
+        data: {
+          userId: user.id,
+          action: 'AUTH_LOGIN_FAILED',
+          resource: `User:${user.id}`,
+          details: 'Failed authentication: invalid password attempt',
+          ipAddress: req.ip,
+        }
+      }).catch(() => {});
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
@@ -91,6 +108,15 @@ export const login = async (req: Request, res: Response) => {
         INVESTIGATOR: 'Investigator',
         ADMIN: 'Administrator'
       };
+      await prisma.auditLog.create({
+        data: {
+          userId: user.id,
+          action: 'AUTH_ROLE_MISMATCH',
+          resource: `User:${user.id}`,
+          details: `User attempted portal login with mismatched role: actual ${user.role}, required ${requiredRole}`,
+          ipAddress: req.ip,
+        }
+      }).catch(() => {});
       return res.status(403).json({
         error: `Access Denied: This account is registered as ${roleLabels[user.role] || user.role}. You cannot sign in through the ${roleLabels[requiredRole] || requiredRole} portal.`
       });

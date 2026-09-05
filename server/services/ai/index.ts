@@ -5,6 +5,8 @@ import { transcribeAudioEvidence, AudioTranscriptionResult } from './transcripti
 export interface ComprehensiveAIAnalysisResult {
   evidenceId: string;
   processedAt: string;
+  status: 'COMPLETED';
+  isAiGenerated: true;
   mimeType: string;
   fileName: string;
   documentType?: string;
@@ -15,10 +17,10 @@ export interface ComprehensiveAIAnalysisResult {
   disclaimer: string;
 }
 
-const DISCLAIMER_NOTICE = 'AI-Assisted Analysis — For information and text indexing purposes only. Requires human verification. Contains no automated legal decisions or conclusions.';
+const DISCLAIMER_NOTICE = 'AI-Assisted Analysis — For information and text indexing purposes only. Requires human verification. Contains no automated legal decisions or conclusions. Not cryptographic proof of authenticity.';
 
 /**
- * Main AI Analysis Orchestrator for Evidence Files.
+ * Main AI Analysis Orchestrator for Formal Evidence Files.
  */
 export const runAIAnalysis = async (params: {
   evidenceId: string;
@@ -27,12 +29,17 @@ export const runAIAnalysis = async (params: {
   fileName: string;
 }): Promise<ComprehensiveAIAnalysisResult> => {
   const { evidenceId, filePathOrBuffer, mimeType, fileName } = params;
+
+  if (!evidenceId || !filePathOrBuffer || !fileName) {
+    throw new Error('Invalid parameters for AI analysis: evidenceId, filePathOrBuffer, and fileName are required.');
+  }
+
   const lowerName = fileName.toLowerCase();
-  const isAudio = mimeType.startsWith('audio/') ||
+  const isAudio = (mimeType && mimeType.startsWith('audio/')) ||
     ['.mp3', '.wav', '.m4a', '.aac', '.ogg', '.flac', '.webm'].some(ext => lowerName.endsWith(ext));
 
   let extractedText = '';
-  let documentType = 'Evidence File';
+  let documentType = 'Evidence Document';
   let objectiveSummary = '';
   let audioTranscript: string | undefined = undefined;
 
@@ -58,26 +65,29 @@ export const runAIAnalysis = async (params: {
     identifiers: [],
   };
 
-  if (extractedText && extractedText.length > 10) {
+  if (extractedText && extractedText.trim().length > 10) {
     try {
       entities = await extractEntitiesFromText(extractedText);
     } catch {
-      // Graceful fallback if entity extraction fails
+      // Graceful fallback if entity extraction encounters transient error
     }
   }
 
   return {
     evidenceId,
     processedAt: new Date().toISOString(),
-    mimeType,
+    status: 'COMPLETED',
+    isAiGenerated: true,
+    mimeType: mimeType || 'application/octet-stream',
     fileName,
     documentType,
     extractedText,
     audioTranscript,
-    objectiveSummary,
+    objectiveSummary: objectiveSummary || 'Evidence processed and indexed.',
     entities,
     disclaimer: DISCLAIMER_NOTICE,
   };
 };
 
 export { extractTextFromEvidence, extractEntitiesFromText, transcribeAudioEvidence };
+
