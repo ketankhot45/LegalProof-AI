@@ -564,6 +564,59 @@ export const PublicVerify = () => {
                       )}
                     </div>
                   </div>
+                ) : verifyResult?.status === 'DB_RECORD_FOUND_RPC_UNAVAILABLE' ? (
+                  /* DB Record Found But RPC Offline State */
+                  <div className="p-5 sm:p-6 bg-cyan-500/10 border border-cyan-500/30 rounded-xl space-y-4">
+                    <div className="flex items-start space-x-3 text-cyan-400">
+                      <AlertCircle className="w-6 h-6 shrink-0 mt-0.5" />
+                      <div>
+                        <h4 className="font-bold text-sm sm:text-base text-cyan-300 tracking-tight">
+                          DATABASE ANCHOR RECORDED • LIVE RPC UNREACHABLE
+                        </h4>
+                        <p className="text-xs text-cyan-300/80 mt-0.5 leading-relaxed">
+                          {verifyResult.message || 'Hash is registered as anchored in LegalProof database records, but the Polygon blockchain RPC is currently unreachable for independent on-chain confirmation.'}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs bg-zinc-950/90 p-4 rounded-xl border border-cyan-500/20 font-sans">
+                      <div>
+                        <span className="text-zinc-500 text-[11px] block">Recorded Network</span>
+                        <span className="text-zinc-200 font-semibold flex items-center gap-1.5 mt-0.5">
+                          <span className="w-2 h-2 rounded-full bg-cyan-400"></span>
+                          {verifyResult.network || 'Polygon Amoy'}
+                        </span>
+                      </div>
+
+                      {verifyResult.anchoredAt && (
+                        <div>
+                          <span className="text-zinc-500 text-[11px] block">Recorded Intake Date</span>
+                          <span className="text-zinc-200 font-medium mt-0.5 block">
+                            {new Date(verifyResult.anchoredAt).toLocaleString()}
+                          </span>
+                        </div>
+                      )}
+
+                      {verifyResult.txHash && (
+                        <div className="sm:col-span-2 pt-1 border-t border-zinc-800/80">
+                          <span className="text-zinc-500 text-[11px] block">Recorded Transaction Hash</span>
+                          <span className="text-zinc-300 font-mono text-[11px] break-all block mt-0.5 select-all">
+                            {verifyResult.txHash}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="pt-2 flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() => computedHash && verifyHashOnBlockchain(computedHash)}
+                        className="px-3 py-1.5 bg-cyan-600/30 hover:bg-cyan-600/50 border border-cyan-500/40 text-cyan-200 rounded-lg font-medium transition-colors inline-flex items-center gap-1.5 text-xs"
+                      >
+                        <RefreshCw className="w-3.5 h-3.5" /> Retry Live Blockchain Verification
+                      </button>
+                    </div>
+                  </div>
                 ) : (
                   /* Not Found State */
                   <div className="p-5 sm:p-6 bg-amber-500/10 border border-amber-500/30 rounded-xl space-y-3">
@@ -609,7 +662,7 @@ export const PublicVerify = () => {
       <footer className="border-t border-zinc-800/80 py-6 text-center text-xs text-zinc-500 bg-zinc-950">
         <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <span>LegalProof AI • Immutable Evidence Verification System</span>
-          <span className="text-zinc-600 font-mono text-[11px]">Polygon Amoy Contract: 0x8898...cE87</span>
+          <span className="text-zinc-600 font-mono text-[11px]">Polygon Amoy Registry • Chain ID: 80002</span>
         </div>
       </footer>
     </div>

@@ -7,9 +7,10 @@ describe("LegalProofEvidenceRegistry", function () {
   let addr1;
   let addr2;
 
-  // Generate a mock SHA-256 hash (32 bytes)
+  // Generate 32-byte hashes
   const mockHash1 = ethers.keccak256(ethers.toUtf8Bytes("evidence1"));
   const mockHash2 = ethers.keccak256(ethers.toUtf8Bytes("evidence2"));
+  const mockHash3 = ethers.keccak256(ethers.toUtf8Bytes("evidence3"));
   const zeroHash = "0x0000000000000000000000000000000000000000000000000000000000000000";
 
   beforeEach(async function () {
@@ -38,7 +39,15 @@ describe("LegalProofEvidenceRegistry", function () {
     expect(details.timestamp).to.be.greaterThan(0);
   });
 
-  it("Should reject registering the exact same hash twice", async function () {
+  it("Should reject registering the exact same hash twice from same caller", async function () {
+    await registry.connect(addr1).anchorEvidence(mockHash1);
+
+    await expect(
+      registry.connect(addr1).anchorEvidence(mockHash1)
+    ).to.be.revertedWith("Evidence already registered");
+  });
+
+  it("Should reject registering the exact same hash twice from different caller", async function () {
     await registry.connect(addr1).anchorEvidence(mockHash1);
 
     await expect(
@@ -67,5 +76,36 @@ describe("LegalProofEvidenceRegistry", function () {
     await expect(
       registry.connect(addr1).anchorEvidence(zeroHash)
     ).to.be.revertedWith("Invalid hash");
+  });
+
+  it("Should allow registering multiple independent hashes from different submitters", async function () {
+    await registry.connect(addr1).anchorEvidence(mockHash1);
+    await registry.connect(addr2).anchorEvidence(mockHash2);
+    await registry.connect(owner).anchorEvidence(mockHash3);
+
+    const details1 = await registry.getEvidenceDetails(mockHash1);
+    const details2 = await registry.getEvidenceDetails(mockHash2);
+    const details3 = await registry.getEvidenceDetails(mockHash3);
+
+    expect(details1.exists).to.be.true;
+    expect(details1.submitter).to.equal(addr1.address);
+
+    expect(details2.exists).to.be.true;
+    expect(details2.submitter).to.equal(addr2.address);
+
+    expect(details3.exists).to.be.true;
+    expect(details3.submitter).to.equal(owner.address);
+  });
+
+  it("Should preserve immutable details of registered hashes even when new hashes are registered", async function () {
+    await registry.connect(addr1).anchorEvidence(mockHash1);
+    const details1Before = await registry.getEvidenceDetails(mockHash1);
+
+    await registry.connect(addr2).anchorEvidence(mockHash2);
+
+    const details1After = await registry.getEvidenceDetails(mockHash1);
+    expect(details1After.exists).to.equal(details1Before.exists);
+    expect(details1After.timestamp).to.equal(details1Before.timestamp);
+    expect(details1After.submitter).to.equal(details1Before.submitter);
   });
 });
