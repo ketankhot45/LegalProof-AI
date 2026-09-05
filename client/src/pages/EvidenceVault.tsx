@@ -7,16 +7,11 @@ import {
   RefreshCw, 
   ShieldCheck, 
   ShieldAlert, 
-  Clock, 
   File, 
   ArrowRight, 
   Upload, 
-  Copy, 
-  Check, 
   Briefcase,
-  Layers,
-  X,
-  ExternalLink
+  X
 } from 'lucide-react';
 
 interface EvidenceItem {
@@ -61,7 +56,6 @@ export const EvidenceVault = () => {
   const [selectedCaseId, setSelectedCaseId] = useState<string>('ALL');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [blockchainFilter, setBlockchainFilter] = useState<string>('ALL');
-  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   // Complainants are unauthorized
   if (user && user.role === 'COMPLAINANT') {
@@ -124,12 +118,6 @@ export const EvidenceVault = () => {
   useEffect(() => {
     fetchVaultData();
   }, []);
-
-  const handleCopyHash = (id: string, hash: string) => {
-    navigator.clipboard.writeText(hash);
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2000);
-  };
 
   // Metrics
   const metrics = useMemo(() => {
@@ -208,34 +196,35 @@ export const EvidenceVault = () => {
   return (
     <div className="space-y-6">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800/80 pb-5">
         <div>
           <div className="flex items-center space-x-3">
-            <h2 className="text-2xl font-semibold text-white tracking-tight">Evidence Vault</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">Evidence Vault</h2>
             <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full border border-indigo-500/30 bg-indigo-500/10 text-indigo-400">
-              Cryptographic Storage
+              Forensic Registry
             </span>
           </div>
-          <p className="text-sm text-zinc-400 mt-1">
-            Centralized registry of chain-of-custody digital evidence artifacts, SHA-256 integrity records, and on-chain verification.
+          <p className="text-xs sm:text-sm text-zinc-400 mt-1">
+            Centralized repository of digital evidence artifacts, cryptographic SHA-256 integrity digests, and blockchain anchor proofs.
           </p>
         </div>
 
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-2.5 shrink-0">
           <button
             type="button"
             onClick={() => fetchVaultData(true)}
             disabled={refreshing}
             className="flex items-center px-3 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 rounded-xl text-xs font-medium transition-colors disabled:opacity-50"
+            title="Refresh evidence list"
           >
             <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${refreshing ? 'animate-spin' : ''}`} />
-            Refresh Vault
+            Refresh
           </button>
           {isAuthorizedUploader && (
             <button
               type="button"
               onClick={handleUploadClick}
-              className="flex items-center px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-medium transition-colors"
+              className="flex items-center px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold transition-colors shadow-sm"
             >
               <Upload className="w-3.5 h-3.5 mr-1.5" />
               Upload Evidence
@@ -244,37 +233,37 @@ export const EvidenceVault = () => {
         </div>
       </div>
 
-      {/* Metric Telemetry Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="bg-zinc-900 border border-zinc-800 p-4 rounded-xl">
-          <span className="text-[11px] font-medium text-zinc-400 uppercase tracking-wider">Total Artifacts</span>
-          <p className="text-2xl font-bold text-white mt-1.5">{metrics.total}</p>
-          <p className="text-[11px] text-zinc-500 mt-0.5">Securely cataloged</p>
+      {/* Summary Status Strip */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+        <div className="bg-zinc-900/90 border border-zinc-800 p-4 rounded-xl">
+          <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">Total Artifacts</span>
+          <p className="text-2xl font-bold text-white mt-1">{metrics.total}</p>
+          <p className="text-[11px] text-zinc-500 mt-0.5">Cataloged in roster</p>
         </div>
 
-        <div className="bg-zinc-900 border border-zinc-800 p-4 rounded-xl">
-          <span className="text-[11px] font-medium text-zinc-400 uppercase tracking-wider">Verified Integrity</span>
-          <p className="text-2xl font-bold text-emerald-400 mt-1.5">{metrics.verified}</p>
-          <p className="text-[11px] text-zinc-500 mt-0.5">SHA-256 confirmed</p>
+        <div className="bg-zinc-900/90 border border-zinc-800 p-4 rounded-xl">
+          <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">Integrity Verified</span>
+          <p className="text-2xl font-bold text-emerald-400 mt-1">{metrics.verified}</p>
+          <p className="text-[11px] text-zinc-500 mt-0.5">SHA-256 match confirmed</p>
         </div>
 
-        <div className="bg-zinc-900 border border-zinc-800 p-4 rounded-xl">
-          <span className="text-[11px] font-medium text-zinc-400 uppercase tracking-wider">Anchored On-Chain</span>
-          <p className="text-2xl font-bold text-purple-400 mt-1.5">{metrics.anchored}</p>
-          <p className="text-[11px] text-zinc-500 mt-0.5">Polygon Amoy Testnet</p>
+        <div className="bg-zinc-900/90 border border-zinc-800 p-4 rounded-xl">
+          <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">Anchored On-Chain</span>
+          <p className="text-2xl font-bold text-purple-400 mt-1">{metrics.anchored}</p>
+          <p className="text-[11px] text-zinc-500 mt-0.5">Polygon Amoy ledger</p>
         </div>
 
-        <div className="bg-zinc-900 border border-zinc-800 p-4 rounded-xl">
-          <span className="text-[11px] font-medium text-zinc-400 uppercase tracking-wider">Integrity Status</span>
-          <p className={`text-2xl font-bold mt-1.5 ${metrics.failed > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
-            {metrics.failed > 0 ? `${metrics.failed} Failed` : '100% Match'}
+        <div className="bg-zinc-900/90 border border-zinc-800 p-4 rounded-xl">
+          <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">Tamper Detection</span>
+          <p className={`text-2xl font-bold mt-1 ${metrics.failed > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
+            {metrics.failed > 0 ? `${metrics.failed} Tampered` : '0 Anomalies'}
           </p>
-          <p className="text-[11px] text-zinc-500 mt-0.5">Zero tampering detected</p>
+          <p className="text-[11px] text-zinc-500 mt-0.5">Continuous verification</p>
         </div>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 space-y-3">
+      <div className="bg-zinc-900/90 border border-zinc-800 rounded-xl p-4 space-y-3 shadow-sm">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
           {/* Search */}
           <div className="relative md:col-span-2">
@@ -283,7 +272,7 @@ export const EvidenceVault = () => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by file name, case title, or SHA-256 hash..."
+              placeholder="Search by file name, case title, uploader, or SHA-256..."
               className="w-full pl-9 pr-4 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-indigo-500 transition-colors"
             />
           </div>
@@ -293,18 +282,18 @@ export const EvidenceVault = () => {
             <select
               value={selectedCaseId}
               onChange={(e) => setSelectedCaseId(e.target.value)}
-              className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-sm text-zinc-300 focus:outline-none focus:border-indigo-500 transition-colors"
+              className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-xs sm:text-sm text-zinc-300 focus:outline-none focus:border-indigo-500 transition-colors"
             >
-              <option value="ALL">All Associated Cases ({cases.length})</option>
+              <option value="ALL">All Cases ({cases.length})</option>
               {cases.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.title.length > 30 ? c.title.substring(0, 30) + '...' : c.title}
+                  {c.title.length > 28 ? c.title.substring(0, 28) + '...' : c.title}
                 </option>
               ))}
             </select>
           </div>
 
-          {/* Status Filter */}
+          {/* Status & Blockchain Filters */}
           <div className="flex gap-2">
             <select
               value={statusFilter}
@@ -324,7 +313,7 @@ export const EvidenceVault = () => {
             >
               <option value="ALL">All Blockchain</option>
               <option value="ANCHORED">Anchored</option>
-              <option value="NOT_ANCHORED">Pending</option>
+              <option value="NOT_ANCHORED">Not Anchored</option>
             </select>
           </div>
         </div>
@@ -336,7 +325,7 @@ export const EvidenceVault = () => {
             </span>
             <button
               onClick={clearFilters}
-              className="flex items-center text-indigo-400 hover:text-indigo-300 transition-colors"
+              className="flex items-center text-indigo-400 hover:text-indigo-300 transition-colors font-medium"
             >
               <X className="w-3.5 h-3.5 mr-1" />
               Clear filters
@@ -347,13 +336,19 @@ export const EvidenceVault = () => {
 
       {/* Error state */}
       {error && (
-        <div className="p-4 bg-red-950/20 border border-red-800/40 rounded-xl text-sm text-red-400">
-          {error}
+        <div className="p-4 bg-red-950/20 border border-red-800/40 rounded-xl text-xs sm:text-sm text-red-400 flex items-center justify-between">
+          <span>{error}</span>
+          <button 
+            onClick={() => fetchVaultData(true)} 
+            className="text-xs text-red-300 hover:text-red-200 underline font-medium"
+          >
+            Retry
+          </button>
         </div>
       )}
 
-      {/* Evidence Table */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+      {/* Evidence Registry Table */}
+      <div className="bg-zinc-900/90 border border-zinc-800 rounded-xl overflow-hidden shadow-sm">
         {loading ? (
           <div className="p-12 text-center text-sm text-zinc-500">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500 mx-auto mb-3"></div>
@@ -365,7 +360,7 @@ export const EvidenceVault = () => {
             <h4 className="text-sm font-semibold text-white">No Evidence Items Found</h4>
             <p className="text-xs text-zinc-500 mt-1 max-w-md">
               {isFiltered 
-                ? 'No artifacts match your current filter parameters. Try clearing the search query or case filter.'
+                ? 'No artifacts match your current filter parameters. Try adjusting the search query or case filter.'
                 : 'No evidence artifacts are currently cataloged in your assigned investigation roster.'}
             </p>
             {isFiltered ? (
@@ -387,29 +382,29 @@ export const EvidenceVault = () => {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm text-zinc-400">
-              <thead className="bg-zinc-950/50 text-xs uppercase text-zinc-500 border-b border-zinc-800 whitespace-nowrap">
+              <thead className="bg-zinc-950/60 text-[11px] uppercase tracking-wider text-zinc-500 border-b border-zinc-800 whitespace-nowrap">
                 <tr>
-                  <th className="px-5 py-3.5 font-medium">Artifact Name</th>
-                  <th className="px-5 py-3.5 font-medium">Associated Case</th>
-                  <th className="px-5 py-3.5 font-medium">SHA-256 Hash</th>
-                  <th className="px-5 py-3.5 font-medium">Integrity</th>
-                  <th className="px-5 py-3.5 font-medium">Blockchain</th>
-                  <th className="px-5 py-3.5 font-medium">Uploaded</th>
-                  <th className="px-5 py-3.5 font-medium text-right">Action</th>
+                  <th className="px-5 py-3.5 font-semibold">Artifact Name</th>
+                  <th className="px-5 py-3.5 font-semibold">Associated Case</th>
+                  <th className="px-5 py-3.5 font-semibold">Integrity Status</th>
+                  <th className="px-5 py-3.5 font-semibold">Blockchain Proof</th>
+                  <th className="px-5 py-3.5 font-semibold">Uploaded</th>
+                  <th className="px-5 py-3.5 font-semibold text-right">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800">
+              <tbody className="divide-y divide-zinc-800/80">
                 {filteredEvidence.map((item) => {
                   const isVerified = item.status === 'VERIFIED';
                   const isFailed = item.status === 'INTEGRITY_FAILED';
                   const isAnchored = item.blockchainStatus === 'ANCHORED';
+                  const isAnchoring = item.blockchainStatus === 'ANCHORING';
 
                   return (
                     <tr key={item.id} className="hover:bg-zinc-800/30 transition-colors">
-                      {/* Artifact Name & Size */}
+                      {/* Artifact Name & Type */}
                       <td className="px-5 py-3.5 whitespace-nowrap">
                         <div className="flex items-center space-x-3">
-                          <div className="p-2 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-300">
+                          <div className="p-2 rounded-lg bg-zinc-800/90 border border-zinc-700/80 text-zinc-300 shrink-0">
                             {isVerified ? (
                               <ShieldCheck className="w-4 h-4 text-emerald-400" />
                             ) : isFailed ? (
@@ -418,17 +413,19 @@ export const EvidenceVault = () => {
                               <File className="w-4 h-4 text-indigo-400" />
                             )}
                           </div>
-                          <div>
+                          <div className="min-w-0">
                             <Link
                               to={`/evidence/${item.id}`}
-                              className="font-medium text-white hover:text-indigo-400 transition-colors block max-w-[200px] truncate"
+                              className="font-medium text-white hover:text-indigo-300 transition-colors block max-w-[220px] truncate"
                               title={item.fileName}
                             >
                               {item.fileName}
                             </Link>
-                            <span className="text-xs text-zinc-500">
-                              {(item.size / (1024 * 1024)).toFixed(2)} MB
-                            </span>
+                            <div className="flex items-center gap-1.5 text-[11px] text-zinc-500 mt-0.5">
+                              <span>{(item.size / (1024 * 1024)).toFixed(2)} MB</span>
+                              <span>•</span>
+                              <span className="font-mono truncate max-w-[120px]">{item.mimeType}</span>
+                            </div>
                           </div>
                         </div>
                       </td>
@@ -437,7 +434,7 @@ export const EvidenceVault = () => {
                       <td className="px-5 py-3.5 whitespace-nowrap">
                         <Link
                           to={`/cases/${item.caseId}`}
-                          className="text-xs font-medium text-zinc-300 hover:text-indigo-400 transition-colors flex items-center max-w-[180px] truncate"
+                          className="text-xs font-medium text-zinc-300 hover:text-indigo-400 transition-colors flex items-center max-w-[200px] truncate"
                           title={item.caseTitle}
                         >
                           <Briefcase className="w-3.5 h-3.5 mr-1.5 text-zinc-500 shrink-0" />
@@ -445,44 +442,21 @@ export const EvidenceVault = () => {
                         </Link>
                       </td>
 
-                      {/* SHA-256 Hash with copy */}
-                      <td className="px-5 py-3.5 whitespace-nowrap font-mono text-xs">
-                        {item.sha256Hash ? (
-                          <div className="flex items-center space-x-1.5 text-zinc-400">
-                            <span>{item.sha256Hash.substring(0, 10)}...{item.sha256Hash.substring(item.sha256Hash.length - 6)}</span>
-                            <button
-                              type="button"
-                              onClick={() => handleCopyHash(item.id, item.sha256Hash!)}
-                              className="p-1 hover:text-white rounded transition-colors"
-                              title="Copy full SHA-256 hash"
-                            >
-                              {copiedId === item.id ? (
-                                <Check className="w-3.5 h-3.5 text-emerald-400" />
-                              ) : (
-                                <Copy className="w-3.5 h-3.5 text-zinc-500" />
-                              )}
-                            </button>
-                          </div>
-                        ) : (
-                          <span className="text-zinc-600">Pending</span>
-                        )}
-                      </td>
-
                       {/* Integrity Status */}
                       <td className="px-5 py-3.5 whitespace-nowrap">
                         {isVerified ? (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1.5"></span>
-                            Verified
+                            Integrity Verified
                           </span>
                         ) : isFailed ? (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-red-500/10 text-red-400 border border-red-500/20">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-red-500/10 text-red-400 border border-red-500/20">
                             <span className="w-1.5 h-1.5 rounded-full bg-red-400 mr-1.5"></span>
                             Integrity Failed
                           </span>
                         ) : (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-zinc-800 text-zinc-400 border border-zinc-700">
-                            {item.status.replace('_', ' ')}
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-zinc-800 text-zinc-400 border border-zinc-700">
+                            Verification Pending
                           </span>
                         )}
                       </td>
@@ -490,12 +464,17 @@ export const EvidenceVault = () => {
                       {/* Blockchain Status */}
                       <td className="px-5 py-3.5 whitespace-nowrap">
                         {isAnchored ? (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-purple-500/10 text-purple-300 border border-purple-500/20">
                             <span className="w-1.5 h-1.5 rounded-full bg-purple-400 mr-1.5"></span>
-                            Polygon Amoy
+                            Polygon Anchored
+                          </span>
+                        ) : isAnchoring ? (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                            <RefreshCw className="w-2.5 h-2.5 mr-1 animate-spin" />
+                            Mempool Pending
                           </span>
                         ) : (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-zinc-800 text-zinc-400 border border-zinc-700">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-zinc-800/80 text-zinc-400 border border-zinc-700/80">
                             Not Anchored
                           </span>
                         )}
@@ -504,7 +483,7 @@ export const EvidenceVault = () => {
                       {/* Upload Date & Uploader */}
                       <td className="px-5 py-3.5 whitespace-nowrap text-xs text-zinc-400">
                         <div>{new Date(item.createdAt).toLocaleDateString()}</div>
-                        <div className="text-[11px] text-zinc-500">
+                        <div className="text-[11px] text-zinc-500 truncate max-w-[130px]">
                           by {item.uploadedBy?.name || 'Investigator'}
                         </div>
                       </td>
@@ -515,7 +494,7 @@ export const EvidenceVault = () => {
                           to={`/evidence/${item.id}`}
                           className="inline-flex items-center text-xs font-semibold text-indigo-400 hover:text-indigo-300 bg-indigo-600/10 hover:bg-indigo-600/20 px-3 py-1.5 rounded-lg border border-indigo-500/30 transition-colors"
                         >
-                          Open Artifact
+                          View Evidence
                           <ArrowRight className="w-3 h-3 ml-1" />
                         </Link>
                       </td>

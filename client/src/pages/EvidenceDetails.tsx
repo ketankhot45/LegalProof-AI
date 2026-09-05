@@ -33,7 +33,8 @@ import {
   XCircle,
   AlertCircle,
   HelpCircle,
-  Maximize2
+  Maximize2,
+  Briefcase
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -421,7 +422,7 @@ export const EvidenceDetails = () => {
       
       {/* 1. Header Navigation & Context Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800/80 pb-5">
-        <div className="flex items-center space-x-3.5">
+        <div className="flex items-center space-x-3.5 min-w-0">
           <button
             type="button"
             onClick={handleBack}
@@ -432,22 +433,32 @@ export const EvidenceDetails = () => {
           </button>
           <div className="min-w-0">
             <div className="flex items-center gap-2.5 flex-wrap">
-              <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight truncate">Evidence Vault</h2>
+              <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight truncate max-w-lg" title={evidence.fileName}>
+                {evidence.fileName}
+              </h2>
               <span className={`text-[11px] font-semibold uppercase px-2.5 py-0.5 rounded-md border ${
                 evidence.status === 'VERIFIED' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' :
                 evidence.status === 'INTEGRITY_FAILED' ? 'bg-red-500/10 text-red-400 border-red-500/30' :
                 'bg-zinc-800 text-zinc-400 border-zinc-700'
               }`}>
-                {evidence.status ? evidence.status.replace('_', ' ') : 'PENDING'}
+                {evidence.status === 'VERIFIED' ? 'Integrity Verified' :
+                 evidence.status === 'INTEGRITY_FAILED' ? 'Integrity Failed' :
+                 evidence.status ? evidence.status.replace('_', ' ') : 'Verification Pending'}
               </span>
               {evidence.blockchainStatus === 'ANCHORED' && (
                 <span className="text-[11px] font-semibold uppercase px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-300 border border-purple-500/30 inline-flex items-center gap-1">
-                  <Lock className="w-3 h-3 text-purple-400" /> On-Chain Anchored
+                  <Lock className="w-3 h-3 text-purple-400" /> Polygon Anchored
                 </span>
               )}
             </div>
-            <p className="text-xs text-zinc-400 mt-1">
-              Case ID: <Link to={`/cases/${evidence.caseId}`} className="text-indigo-400 hover:underline font-mono">{evidence.caseId}</Link> • Read-Only Forensic Inspection Workspace
+            <p className="text-xs text-zinc-400 mt-1 flex items-center gap-2 flex-wrap">
+              <span>Case:</span>
+              <Link to={`/cases/${evidence.caseId}`} className="text-indigo-400 hover:text-indigo-300 font-medium hover:underline inline-flex items-center gap-1">
+                <Briefcase className="w-3 h-3 text-zinc-500" />
+                <span>{evidence.case?.title || evidence.caseTitle || `Case #${evidence.caseId.substring(0, 8)}`}</span>
+              </Link>
+              <span className="text-zinc-600">•</span>
+              <span className="text-zinc-500 font-mono text-[11px]">UUID: {evidence.id}</span>
             </p>
           </div>
         </div>
@@ -457,7 +468,7 @@ export const EvidenceDetails = () => {
           <button 
             type="button"
             onClick={handleDownload}
-            className="inline-flex items-center px-3.5 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-xs font-semibold transition-colors border border-zinc-700/80 shadow-sm"
+            className="inline-flex items-center px-3.5 py-2 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl text-xs font-semibold transition-colors border border-zinc-700/80 shadow-sm"
           >
             <Download className="w-3.5 h-3.5 mr-1.5 text-zinc-300" />
             Download Original
@@ -793,14 +804,19 @@ export const EvidenceDetails = () => {
 
           {/* 3. Investigator AI Analysis Section */}
           <div className="bg-zinc-900/90 border border-zinc-800 rounded-2xl overflow-hidden shadow-sm">
-            <div className="bg-gradient-to-r from-purple-950/80 via-indigo-950/80 to-zinc-900 p-4 sm:p-5 border-b border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="bg-zinc-950/60 p-4 sm:p-5 border-b border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center space-x-3">
-                <div className="p-2 bg-purple-600/20 rounded-xl border border-purple-500/30 text-purple-400">
+                <div className="p-2 bg-purple-500/10 rounded-xl border border-purple-500/20 text-purple-400">
                   <Brain className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-sm sm:text-base font-bold text-white tracking-tight">Investigator AI Insights</h3>
-                  <p className="text-xs text-purple-200/80">Gemini AI — Multimodal OCR, Speech Transcription & Named Entity Extraction</p>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm sm:text-base font-bold text-white tracking-tight">Investigator AI Insights</h3>
+                    <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded bg-purple-500/10 text-purple-300 border border-purple-500/20 font-mono">
+                      Gemini Multimodal
+                    </span>
+                  </div>
+                  <p className="text-xs text-zinc-400 mt-0.5">Automated document OCR, speech transcription & named entity extraction</p>
                 </div>
               </div>
 
@@ -1308,30 +1324,35 @@ export const EvidenceDetails = () => {
             </div>
 
             {isInvestigator && (
-              <button
-                type="button"
-                onClick={handleAnchor}
-                disabled={
-                  anchoring ||
-                  evidence.status !== 'VERIFIED' ||
-                  evidence.blockchainStatus === 'ANCHORED' ||
-                  evidence.blockchainStatus === 'ANCHORING'
-                }
-                className="w-full flex justify-center items-center px-4 py-2.5 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
-              >
-                {anchoring ? (
-                  <>
-                    <RefreshCw className="w-3.5 h-3.5 mr-1.5 animate-spin" />
-                    <span>Anchoring to Polygon Amoy...</span>
-                  </>
-                ) : evidence.blockchainStatus === 'ANCHORED' ? (
-                  <span>Already Anchored On-Chain</span>
-                ) : evidence.status !== 'VERIFIED' ? (
-                  <span>Integrity Must Be Verified First</span>
-                ) : (
-                  <span>Anchor Evidence to Blockchain</span>
+              <div className="space-y-2">
+                <button
+                  type="button"
+                  onClick={handleAnchor}
+                  disabled={
+                    anchoring ||
+                    evidence.status !== 'VERIFIED' ||
+                    evidence.blockchainStatus === 'ANCHORED' ||
+                    evidence.blockchainStatus === 'ANCHORING'
+                  }
+                  className="w-full flex justify-center items-center px-4 py-2.5 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
+                >
+                  {anchoring ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                      <span>Anchoring to Polygon Amoy...</span>
+                    </>
+                  ) : evidence.blockchainStatus === 'ANCHORED' ? (
+                    <span>Already Anchored On-Chain</span>
+                  ) : (
+                    <span>Anchor Verified Hash to Blockchain</span>
+                  )}
+                </button>
+                {evidence.status !== 'VERIFIED' && evidence.blockchainStatus !== 'ANCHORED' && (
+                  <p className="text-[11px] text-zinc-500 text-center">
+                    Verify integrity before anchoring.
+                  </p>
                 )}
-              </button>
+              </div>
             )}
 
             {anchorError && (
@@ -1347,6 +1368,27 @@ export const EvidenceDetails = () => {
                 <button onClick={() => setAnchorSuccess(null)} className="text-emerald-400 font-semibold uppercase text-[10px]">Dismiss</button>
               </div>
             )}
+          </div>
+
+          {/* Public Verification Card */}
+          <div className="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-5 space-y-3 shadow-sm">
+            <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3">
+              <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-wider flex items-center">
+                <ShieldCheck className="w-4 h-4 mr-2 text-indigo-400" />
+                Public Verification Portal
+              </h3>
+              <span className="text-[10px] text-zinc-500 font-mono">External Audit</span>
+            </div>
+            <p className="text-xs text-zinc-400 leading-relaxed">
+              Verify this evidence artifact's SHA-256 cryptographic digest independently on the public verification portal without requiring an account.
+            </p>
+            <Link
+              to={evidence.sha256Hash ? `/verify?hash=${evidence.sha256Hash}` : '/verify'}
+              className="w-full flex justify-center items-center px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-indigo-300 border border-indigo-500/30 rounded-xl text-xs font-semibold transition-colors"
+            >
+              <ExternalLink className="w-3.5 h-3.5 mr-1.5 text-indigo-400" />
+              Open Verification Portal
+            </Link>
           </div>
 
           {/* 6. Chain of Custody Timeline */}
