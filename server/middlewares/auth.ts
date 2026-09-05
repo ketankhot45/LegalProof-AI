@@ -19,13 +19,16 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
     const token = authHeader.split(' ')[1];
     const decoded = verifyToken(token);
     
-    // Verify user still exists
+    // Verify user still exists and use fresh database role
     const user = await prisma.user.findUnique({ where: { id: decoded.id } });
     if (!user) {
       return res.status(401).json({ error: 'Unauthorized: Invalid user' });
     }
 
-    req.user = decoded;
+    req.user = {
+      id: user.id,
+      role: user.role,
+    };
     next();
   } catch (err) {
     return res.status(401).json({ error: 'Unauthorized: Invalid or expired token' });

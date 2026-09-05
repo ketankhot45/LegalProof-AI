@@ -23,11 +23,57 @@ async function startServer() {
   // Trust the first proxy to correctly handle X-Forwarded-For headers
   app.set('trust proxy', 1);
 
+  const isProduction = process.env.NODE_ENV === 'production';
+
   // Security Middlewares
-  app.use(helmet({
-    contentSecurityPolicy: false, // Disabled for Vite in dev
-  }));
-  app.use(cors());
+  app.use(
+    helmet({
+      contentSecurityPolicy: isProduction
+        ? {
+            directives: {
+              defaultSrc: ["'self'"],
+              scriptSrc: ["'self'"],
+              styleSrc: ["'self'", "'unsafe-inline'"],
+              imgSrc: ["'self'", 'data:', 'blob:'],
+              connectSrc: ["'self'"],
+              fontSrc: ["'self'", 'data:'],
+              objectSrc: ["'none'"],
+              frameAncestors: ["'self'"],
+            },
+          }
+        : false, // Disabled for Vite development mode
+    })
+  );
+
+  // Environment-aware CORS configuration
+  if (!isProduction) {
+    app.use(cors());
+  } else {
+    const rawAllowedOrigins = process.env.ALLOWED_ORIGINS;
+    if (rawAllowedOrigins) {
+      const allowedOrigins = rawAllowedOrigins
+        .split(',')
+        .map((origin) => origin.trim())
+        .filter(Boolean);
+
+      app.use(
+        cors({
+          origin: (origin, callback) => {
+            // Allow same-origin / non-browser requests without origin header, or origins explicitly allowed
+            if (!origin || allowedOrigins.includes(origin)) {
+              callback(null, true);
+            } else {
+              callback(new Error('CORS policy: Origin not allowed'));
+            }
+          },
+          credentials: true,
+        })
+      );
+    } else {
+      // Default to standard origin handling when no external origins specified
+      app.use(cors());
+    }
+  }
   app.use(express.json());
   app.use(morgan('dev'));
 
