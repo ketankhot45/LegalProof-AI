@@ -3,6 +3,7 @@ import { z } from 'zod';
 import prisma from '../utils/db.js';
 import { AuthRequest } from '../middlewares/auth.js';
 import { saveEvidence, getEvidenceStream } from '../services/storage.service.js';
+import { validateEvidenceFile } from '../utils/file-validator.js';
 import crypto from 'crypto';
 import path from 'path';
 
@@ -22,6 +23,23 @@ const reviewSchema = z.object({
 export const createComplaint = async (req: AuthRequest, res: Response) => {
   try {
     const validated = createSchema.parse(req.body);
+
+    let verifiedMimeType = 'application/octet-stream';
+    if (req.file && req.file.buffer) {
+      const validationResult = validateEvidenceFile(
+        req.file.buffer,
+        req.file.originalname,
+        req.file.mimetype
+      );
+
+      if (!validationResult.isValid) {
+        return res.status(400).json({ 
+          error: validationResult.error || 'Supporting proof validation failed: unauthorized or malformed file content.' 
+        });
+      }
+      verifiedMimeType = validationResult.verifiedMimeType;
+    }
+
     const complaint = await prisma.complaint.create({
       data: {
         title: validated.title,
@@ -37,14 +55,14 @@ export const createComplaint = async (req: AuthRequest, res: Response) => {
       const ext = path.extname(req.file.originalname) || '.bin';
       const storageKey = `proof-${crypto.randomUUID()}${ext}`;
 
-      await saveEvidence(storageKey, req.file.buffer, req.file.mimetype || 'application/octet-stream');
+      await saveEvidence(storageKey, req.file.buffer, verifiedMimeType);
 
       proofRecord = await prisma.supportingProof.create({
         data: {
           complaintId: complaint.id,
           fileName: req.file.originalname,
           fileSize: req.file.size,
-          mimeType: req.file.mimetype || 'application/octet-stream',
+          mimeType: verifiedMimeType,
           storageKey,
         },
       });

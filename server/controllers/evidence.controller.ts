@@ -10,6 +10,7 @@ import {
   getEvidenceStream, 
   deleteEvidence 
 } from '../services/storage.service.js';
+import { validateEvidenceFile } from '../utils/file-validator.js';
 import crypto from 'crypto';
 import path from 'path';
 
@@ -64,17 +65,30 @@ export const uploadEvidence = async (req: AuthRequest, res: Response) => {
       });
     }
 
+    // Inspect file signature / magic bytes to prevent renamed/disguised binaries
+    const validationResult = validateEvidenceFile(
+      fileBuffer,
+      req.file.originalname,
+      req.file.mimetype
+    );
+
+    if (!validationResult.isValid) {
+      return res.status(400).json({ 
+        error: validationResult.error || 'File validation failed: unauthorized or malformed file content.' 
+      });
+    }
+
     // Generate unique object key for storage
     const ext = path.extname(req.file.originalname);
     const storageUrl = crypto.randomUUID() + ext;
 
-    // Create Evidence record
+    // Create Evidence record with verified MIME type
     const evidence = await prisma.evidence.create({
       data: {
         caseId,
         uploadedById: req.user!.id,
         fileName: req.file.originalname,
-        mimeType: req.file.mimetype,
+        mimeType: validationResult.verifiedMimeType,
         size: req.file.size,
         clientHash: clientHash.toLowerCase(),
         sha256Hash: serverHash.toLowerCase(),
@@ -87,7 +101,7 @@ export const uploadEvidence = async (req: AuthRequest, res: Response) => {
 
     // Save verified evidence to persistent storage service
     try {
-      await saveEvidence(storageUrl, fileBuffer, req.file.mimetype);
+      await saveEvidence(storageUrl, fileBuffer, validationResult.verifiedMimeType);
     } catch (storageError) {
       // Cleanup if storage fails
       await prisma.evidence.delete({ where: { id: evidence.id } });
