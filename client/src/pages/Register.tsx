@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router';
-import { useAuth } from '../contexts/AuthContext';
-import { Shield } from 'lucide-react';
+import { Link } from 'react-router';
+import { Shield, Mail, CheckCircle2, ArrowRight } from 'lucide-react';
 
 export const Register = () => {
   const [name, setName] = useState('');
@@ -9,8 +8,10 @@ export const Register = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
-  const { login } = useAuth();
+  const [registered, setRegistered] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState('');
+  const [resendStatus, setResendStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [resendMessage, setResendMessage] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,8 +31,8 @@ export const Register = () => {
         throw new Error(data.error || 'Failed to register');
       }
 
-      login(data.token, data.user);
-      navigate('/dashboard');
+      setRegistered(true);
+      setRegisteredEmail(email);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -39,89 +40,147 @@ export const Register = () => {
     }
   };
 
+  const handleResend = async () => {
+    if (!registeredEmail) return;
+    setResendStatus('loading');
+    setResendMessage('');
+
+    try {
+      const res = await fetch('/api/v1/auth/resend-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: registeredEmail }),
+      });
+      const data = await res.json();
+      setResendStatus('success');
+      setResendMessage(data.message || 'Verification link resent.');
+    } catch (err) {
+      setResendStatus('error');
+      setResendMessage('Failed to resend email. Please try again later.');
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-zinc-950 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-zinc-950 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md flex flex-col items-center">
-        <Shield className="w-12 h-12 text-indigo-500 mb-4" />
+        <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl mb-3 shadow-inner">
+          <Shield className="w-10 h-10 text-indigo-500" />
+        </div>
         <h2 className="text-center text-3xl font-bold tracking-tight text-white">
           Join LegalProof AI
         </h2>
-        <p className="mt-2 text-center text-sm text-zinc-400">
-          Create an account to submit incident reports and evidence
+        <p className="mt-1 text-center text-xs text-zinc-400">
+          Citizen Public Intake & Incident Reporting Portal
         </p>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-zinc-900 py-8 px-4 shadow sm:rounded-lg sm:px-10 border border-zinc-800">
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            {error && (
-              <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-3 rounded-md text-sm">
-                {error}
+      <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-zinc-900 shadow-2xl rounded-2xl border border-zinc-800 p-6 sm:p-8">
+          {registered ? (
+            <div className="text-center py-4 space-y-4">
+              <div className="w-12 h-12 bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center justify-center mx-auto text-emerald-400">
+                <CheckCircle2 className="w-7 h-7" />
               </div>
-            )}
+              <h3 className="text-lg font-semibold text-white">Verification Email Sent</h3>
+              <p className="text-sm text-zinc-300">
+                We sent a secure verification link to <strong className="text-white">{registeredEmail}</strong>.
+              </p>
+              <p className="text-xs text-zinc-400 leading-relaxed">
+                Please click the link in your email to verify your identity and activate your account before logging in.
+              </p>
 
-            <div>
-              <label className="block text-sm font-medium text-zinc-300">
-                Full Name
-              </label>
-              <div className="mt-1">
+              <div className="pt-2 border-t border-zinc-800 space-y-3">
+                <button
+                  type="button"
+                  onClick={handleResend}
+                  disabled={resendStatus === 'loading'}
+                  className="w-full flex items-center justify-center gap-2 rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2 text-xs font-medium text-zinc-200 hover:bg-zinc-700 hover:text-white transition-colors disabled:opacity-50"
+                >
+                  <Mail className="w-3.5 h-3.5" />
+                  {resendStatus === 'loading' ? 'Resending...' : 'Resend Verification Link'}
+                </button>
+                {resendMessage && (
+                  <p className="text-[11px] text-zinc-300">{resendMessage}</p>
+                )}
+
+                <Link
+                  to="/login"
+                  className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-xs font-semibold text-white hover:bg-indigo-500 transition-colors shadow-md"
+                >
+                  Proceed to Citizen Login
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+            </div>
+          ) : (
+            <form className="space-y-4" onSubmit={handleSubmit}>
+              {error && (
+                <div className="bg-red-500/10 border border-red-500/30 text-red-300 p-3 rounded-xl text-xs">
+                  {error}
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs font-medium text-zinc-300 mb-1">
+                  Full Legal Name
+                </label>
                 <input
                   type="text"
                   required
                   value={name}
                   onChange={e => setName(e.target.value)}
-                  className="block w-full appearance-none rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2 text-zinc-100 placeholder-zinc-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm"
+                  placeholder="Jane Doe"
+                  className="block w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-zinc-100 placeholder-zinc-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 text-xs"
                 />
               </div>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-zinc-300">
-                Email address
-              </label>
-              <div className="mt-1">
+              
+              <div>
+                <label className="block text-xs font-medium text-zinc-300 mb-1">
+                  Email Address
+                </label>
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  className="block w-full appearance-none rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2 text-zinc-100 placeholder-zinc-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm"
+                  placeholder="jane.doe@domain.com"
+                  className="block w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-zinc-100 placeholder-zinc-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 text-xs"
                 />
               </div>
-            </div>
 
-            <div>
-              <label className="block text-sm font-medium text-zinc-300">
-                Password
-              </label>
-              <div className="mt-1">
+              <div>
+                <label className="block text-xs font-medium text-zinc-300 mb-1">
+                  Create Password
+                </label>
                 <input
                   type="password"
                   required
+                  minLength={8}
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  className="block w-full appearance-none rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2 text-zinc-100 placeholder-zinc-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm"
+                  placeholder="Minimum 8 characters"
+                  className="block w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-zinc-100 placeholder-zinc-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 text-xs"
                 />
               </div>
-            </div>
 
-            <div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="flex w-full justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-zinc-900 disabled:opacity-50"
-              >
-                {loading ? 'Registering...' : 'Create Account'}
-              </button>
-            </div>
-          </form>
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full flex items-center justify-center py-2.5 px-4 rounded-xl text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-zinc-900 transition-colors disabled:opacity-50 shadow-md"
+                >
+                  {loading ? 'Creating Account...' : 'Register as Citizen Complainant'}
+                </button>
+              </div>
 
-          <div className="mt-6 text-center text-sm">
-            <span className="text-zinc-400">Already have an account? </span>
-            <Link to="/login" className="font-medium text-indigo-400 hover:text-indigo-300">
-              Sign in
-            </Link>
-          </div>
+              <div className="mt-4 text-center text-xs">
+                <span className="text-zinc-400">Already have an account? </span>
+                <Link to="/login" className="font-medium text-indigo-400 hover:text-indigo-300">
+                  Sign in
+                </Link>
+              </div>
+            </form>
+          )}
         </div>
       </div>
     </div>

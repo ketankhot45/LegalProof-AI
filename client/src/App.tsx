@@ -3,6 +3,10 @@ import { Routes, Route, Navigate } from 'react-router';
 import { AuthProvider } from './contexts/AuthContext';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
+import { VerifyEmail } from './pages/VerifyEmail';
+import { ForgotPassword } from './pages/ForgotPassword';
+import { ResetPassword } from './pages/ResetPassword';
+import { ActivateInvestigator } from './pages/ActivateInvestigator';
 import { Dashboard } from './pages/Dashboard';
 import { DashboardLayout } from './layouts/DashboardLayout';
 import { ComplaintsList } from './pages/ComplaintsList';
@@ -23,6 +27,10 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/login/:portalRole" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/activate-investigator" element={<ActivateInvestigator />} />
         <Route path="/verify" element={<PublicVerify />} />
         
         <Route element={<DashboardLayout />}>

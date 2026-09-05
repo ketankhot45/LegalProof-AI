@@ -10,16 +10,18 @@ import {
   Clock, 
   Link as LinkIcon, 
   Plus, 
-  ArrowRight,
-  RefreshCw,
-  Search,
-  Activity,
-  Layers,
-  FileCheck2,
-  FileX2,
-  UserCheck,
-  FolderLock
+  ArrowRight, 
+  RefreshCw, 
+  Search, 
+  Activity, 
+  Layers, 
+  FileCheck2, 
+  FileX2, 
+  UserCheck, 
+  FolderLock,
+  UserPlus
 } from 'lucide-react';
+import { AdminInvestigatorInviteModal } from '../components/AdminInvestigatorInviteModal';
 
 export const Dashboard = () => {
   const { user } = useAuth();
@@ -27,6 +29,7 @@ export const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
 
   const fetchStats = async (isManualRefresh = false) => {
     if (isManualRefresh) setRefreshing(true);
@@ -140,6 +143,15 @@ export const Dashboard = () => {
         </div>
 
         <div className="flex items-center space-x-3">
+          {user?.role === 'ADMIN' && (
+            <button
+              onClick={() => setIsInviteModalOpen(true)}
+              className="flex items-center px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-md text-xs font-medium transition-colors shadow-sm"
+            >
+              <UserPlus className="w-3.5 h-3.5 mr-1.5" />
+              Invite Investigator
+            </button>
+          )}
           <button
             onClick={() => fetchStats(true)}
             disabled={refreshing}
@@ -530,6 +542,14 @@ export const Dashboard = () => {
             </div>
           </div>
         </>
+      )}
+
+      {user?.role === 'ADMIN' && (
+        <AdminInvestigatorInviteModal
+          isOpen={isInviteModalOpen}
+          onClose={() => setIsInviteModalOpen(false)}
+          onSuccess={() => fetchStats(true)}
+        />
       )}
     </div>
   );

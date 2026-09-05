@@ -56,6 +56,8 @@ model User {
   email     String      @unique
   password  String
   name      String
+  isEmailVerified Boolean @default(false)
+  tokenVersion   Int     @default(1)
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
 
@@ -66,7 +68,52 @@ model User {
   uploadedEvidence   Evidence[]              @relation("UserEvidence")
   assignmentRequests CaseAssignmentRequest[] @relation("InvestigatorRequests")
   reviewedRequests   CaseAssignmentRequest[] @relation("ReviewerRequests")
+  emailVerificationTokens EmailVerificationToken[]
+  passwordResetTokens     PasswordResetToken[]
+  sentInvitations         InvestigatorInvitationToken[]
 }
+
+model EmailVerificationToken {
+  id        String   @id @default(uuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tokenHash])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tokenHash])
+}
+
+model InvestigatorInvitationToken {
+  id          String   @id @default(uuid())
+  email       String   @unique
+  name        String
+  tokenHash   String   @unique
+  invitedById String
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+
+  invitedBy   User     @relation(fields: [invitedById], references: [id], onDelete: Cascade)
+
+  @@index([tokenHash])
+  @@index([email])
+}
+
 
 model Complaint {
   id              String          @id @default(uuid())

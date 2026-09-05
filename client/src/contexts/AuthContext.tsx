@@ -1,17 +1,18 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-type User = {
+export type User = {
   id: string;
   name: string;
   email: string;
   role: string;
+  isEmailVerified?: boolean;
 };
 
 type AuthContextType = {
   user: User | null;
   token: string | null;
   login: (token: string, user: User) => void;
-  logout: () => void;
+  logout: () => Promise<void>;
   loading: boolean;
 };
 
@@ -27,7 +28,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       fetch('/api/v1/auth/me', {
         headers: { Authorization: `Bearer ${token}` }
       })
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error('Session invalid');
+        return res.json();
+      })
       .then(data => {
         if (data.user) {
           setUser(data.user);
@@ -52,10 +56,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     localStorage.setItem('token', newToken);
   };
 
-  const logout = () => {
+  const logout = async () => {
+    const currentToken = token;
     setToken(null);
     setUser(null);
     localStorage.removeItem('token');
+
+    if (currentToken) {
+      try {
+        await fetch('/api/v1/auth/logout', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${currentToken}`,
+            'Content-Type': 'application/json',
+          },
+        });
+      } catch (err) {
+        // Safe fail-through for network issues during logout
+      }
+    }
   };
 
   return (

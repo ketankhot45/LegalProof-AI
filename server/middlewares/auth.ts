@@ -25,6 +25,11 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
       return res.status(401).json({ error: 'Unauthorized: Invalid user' });
     }
 
+    // Enforce server-side session revocation / token version check
+    if (decoded.tokenVersion !== undefined && decoded.tokenVersion !== user.tokenVersion) {
+      return res.status(401).json({ error: 'Unauthorized: Session has been invalidated. Please log in again.' });
+    }
+
     req.user = {
       id: user.id,
       role: user.role,

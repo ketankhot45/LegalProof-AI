@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { useAuth } from '../contexts/AuthContext';
-import { Shield, User, Briefcase, KeyRound, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Shield, User, Briefcase, KeyRound, AlertCircle, CheckCircle2, Mail, RefreshCw } from 'lucide-react';
 
 type RoleType = 'COMPLAINANT' | 'INVESTIGATOR' | 'ADMIN';
 
@@ -20,6 +20,9 @@ export const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [requiresVerification, setRequiresVerification] = useState(false);
+  const [resendStatus, setResendStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [resendMessage, setResendMessage] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -31,6 +34,8 @@ export const Login = () => {
   const handleRoleChange = (role: RoleType) => {
     setActiveRole(role);
     setError('');
+    setRequiresVerification(false);
+    setResendStatus('idle');
     const path = role === 'COMPLAINANT' ? '/login/complainant' : role === 'INVESTIGATOR' ? '/login/investigator' : '/login/admin';
     window.history.replaceState(null, '', path);
   };
@@ -38,6 +43,8 @@ export const Login = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setRequiresVerification(false);
+    setResendStatus('idle');
     setLoading(true);
 
     try {
@@ -54,6 +61,9 @@ export const Login = () => {
       const data = await res.json();
       
       if (!res.ok) {
+        if (data.requiresVerification) {
+          setRequiresVerification(true);
+        }
         throw new Error(data.error || 'Authentication failed');
       }
 
@@ -63,6 +73,26 @@ export const Login = () => {
       setError(err.message || 'Unable to sign in. Please verify your credentials and selected portal.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    if (!email) return;
+    setResendStatus('loading');
+    setResendMessage('');
+
+    try {
+      const res = await fetch('/api/v1/auth/resend-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      setResendStatus('success');
+      setResendMessage(data.message || 'Verification link sent. Please check your inbox.');
+    } catch (err) {
+      setResendStatus('error');
+      setResendMessage('Failed to resend verification email. Please try again later.');
     }
   };
 
@@ -171,9 +201,28 @@ export const Login = () => {
 
           <form className="space-y-4" onSubmit={handleSubmit}>
             {error && (
-              <div className="bg-red-500/10 border border-red-500/30 text-red-300 p-3.5 rounded-xl text-xs flex items-start space-x-2">
-                <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
-                <span className="leading-relaxed">{error}</span>
+              <div className="bg-red-500/10 border border-red-500/30 text-red-300 p-3.5 rounded-xl text-xs space-y-2">
+                <div className="flex items-start space-x-2">
+                  <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                  <span className="leading-relaxed">{error}</span>
+                </div>
+
+                {requiresVerification && (
+                  <div className="pt-2 border-t border-red-500/20">
+                    <button
+                      type="button"
+                      onClick={handleResendVerification}
+                      disabled={resendStatus === 'loading'}
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition-colors disabled:opacity-50"
+                    >
+                      <Mail className="w-3.5 h-3.5" />
+                      {resendStatus === 'loading' ? 'Sending link...' : 'Resend verification link to this email'}
+                    </button>
+                    {resendMessage && (
+                      <p className="text-[11px] text-zinc-300 mt-1">{resendMessage}</p>
+                    )}
+                  </div>
+                )}
               </div>
             )}
             
@@ -195,9 +244,17 @@ export const Login = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-zinc-300 mb-1.5">
-                Password
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-medium text-zinc-300">
+                  Password
+                </label>
+                <Link
+                  to="/forgot-password"
+                  className="text-[11px] text-indigo-400 hover:text-indigo-300 transition-colors"
+                >
+                  Forgot password?
+                </Link>
+              </div>
               <input
                 type="password"
                 required
@@ -230,7 +287,7 @@ export const Login = () => {
               </div>
             ) : (
               <p className="text-[11px] text-zinc-500 leading-normal">
-                Departmental access only. Investigator and Administrator accounts are provisioned by agency administration.
+                Departmental access only. Investigator accounts are provisioned via secure administrator invitation.
               </p>
             )}
           </div>

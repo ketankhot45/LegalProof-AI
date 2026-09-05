@@ -1,18 +1,28 @@
 import 'dotenv/config';
 import jwt from 'jsonwebtoken';
 
-const getJwtSecret = () => {
+const getJwtSecret = (): string => {
   const secret = process.env.JWT_SECRET;
   if (!secret) {
-    throw new Error('JWT_SECRET environment variable is required');
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('FATAL: JWT_SECRET environment variable is required in production.');
+    }
+    return 'dev-jwt-secret-legalproof-2026';
   }
   return secret;
 };
 
-export const generateToken = (userId: string, role: string) => {
-  return jwt.sign({ id: userId, role }, getJwtSecret(), { expiresIn: '1d' });
+export interface JWTPayload {
+  id: string;
+  role: string;
+  tokenVersion?: number;
+}
+
+export const generateToken = (userId: string, role: string, tokenVersion: number = 1): string => {
+  return jwt.sign({ id: userId, role, tokenVersion }, getJwtSecret(), { expiresIn: '24h' });
 };
 
-export const verifyToken = (token: string) => {
-  return jwt.verify(token, getJwtSecret()) as { id: string; role: string };
+export const verifyToken = (token: string): JWTPayload => {
+  return jwt.verify(token, getJwtSecret()) as JWTPayload;
 };
+
