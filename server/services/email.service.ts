@@ -27,10 +27,7 @@ function getTransporter(): Transporter {
       auth: { user, pass },
     });
   } else {
-    // Development / Demo fallback transport (JSON / log stream)
-    transporter = nodemailer.createTransport({
-      jsonTransport: true,
-    });
+    throw new Error('SMTP configuration is missing. Cannot send real emails.');
   }
 
   return transporter;

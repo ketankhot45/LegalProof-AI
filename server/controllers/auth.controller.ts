@@ -97,7 +97,22 @@ export const register = async (req: Request, res: Response) => {
 
     // Dispatch verification email
     const baseUrl = getAppBaseUrl(req);
-    await sendVerificationEmail(user.email, user.name, rawToken, baseUrl);
+    const emailResult = await sendVerificationEmail(user.email, user.name, rawToken, baseUrl);
+
+    if (!emailResult.success) {
+      await prisma.emailVerificationToken.deleteMany({ where: { userId: user.id } });
+      await prisma.user.delete({ where: { id: user.id } });
+      
+      await prisma.auditLog.create({
+        data: {
+          action: 'AUTH_EMAIL_DELIVERY_FAILED',
+          details: 'Failed to dispatch verification email during registration.',
+          ipAddress: req.ip,
+        },
+      }).catch(() => {});
+      
+      return res.status(500).json({ error: 'System configuration error: Unable to deliver email. Please contact support.' });
+    }
 
     // Audit Log
     await prisma.auditLog.create({
@@ -232,7 +247,19 @@ export const resendVerification = async (req: Request, res: Response) => {
       });
 
       const baseUrl = getAppBaseUrl(req);
-      await sendVerificationEmail(user.email, user.name, rawToken, baseUrl);
+      const emailResult = await sendVerificationEmail(user.email, user.name, rawToken, baseUrl);
+
+      if (!emailResult.success) {
+        await prisma.auditLog.create({
+          data: {
+            userId: user.id,
+            action: 'AUTH_EMAIL_DELIVERY_FAILED',
+            details: 'Failed to resend verification email.',
+            ipAddress: req.ip,
+          },
+        }).catch(() => {});
+        return res.status(500).json({ error: 'System configuration error: Unable to deliver email.' });
+      }
 
       await prisma.auditLog.create({
         data: {
@@ -397,7 +424,19 @@ export const forgotPassword = async (req: Request, res: Response) => {
       });
 
       const baseUrl = getAppBaseUrl(req);
-      await sendPasswordResetEmail(user.email, user.name, rawToken, baseUrl);
+      const emailResult = await sendPasswordResetEmail(user.email, user.name, rawToken, baseUrl);
+
+      if (!emailResult.success) {
+        await prisma.auditLog.create({
+          data: {
+            userId: user.id,
+            action: 'AUTH_EMAIL_DELIVERY_FAILED',
+            details: 'Failed to dispatch password reset email.',
+            ipAddress: req.ip,
+          },
+        }).catch(() => {});
+        return res.status(500).json({ error: 'System configuration error: Unable to deliver email.' });
+      }
 
       await prisma.auditLog.create({
         data: {
@@ -565,7 +604,7 @@ export const inviteInvestigator = async (req: AuthRequest, res: Response) => {
     const tokenHash = hashSecurityToken(rawToken);
     const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000); // 48 hours
 
-    await prisma.investigatorInvitationToken.create({
+    const invitation = await prisma.investigatorInvitationToken.create({
       data: {
         name: name.trim(),
         email: normalizedEmail,
@@ -576,7 +615,20 @@ export const inviteInvestigator = async (req: AuthRequest, res: Response) => {
     });
 
     const baseUrl = getAppBaseUrl(req);
-    await sendInvestigatorInvitationEmail(normalizedEmail, name.trim(), rawToken, baseUrl);
+    const emailResult = await sendInvestigatorInvitationEmail(normalizedEmail, name.trim(), rawToken, baseUrl);
+
+    if (!emailResult.success) {
+      await prisma.investigatorInvitationToken.delete({ where: { id: invitation.id } });
+      await prisma.auditLog.create({
+        data: {
+          userId: req.user?.id,
+          action: 'AUTH_EMAIL_DELIVERY_FAILED',
+          details: `Failed to dispatch investigator invitation to ${normalizedEmail}`,
+          ipAddress: req.ip,
+        },
+      }).catch(() => {});
+      return res.status(500).json({ error: 'System configuration error: Unable to deliver email.' });
+    }
 
     await prisma.auditLog.create({
       data: {
