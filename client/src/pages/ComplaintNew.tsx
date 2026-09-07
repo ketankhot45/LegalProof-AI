@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate, Link } from 'react-router';
 import { ArrowLeft, Send, AlertCircle, Upload, Paperclip, X, FileText, Info } from 'lucide-react';
+import { useFeedback } from '../contexts/FeedbackContext';
 
 export const ComplaintNew = () => {
   const [title, setTitle] = useState('');
@@ -12,6 +13,7 @@ export const ComplaintNew = () => {
   const [error, setError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+  const { showToast } = useFeedback();
 
   const handleFile = (file: File) => {
     // 25MB check
@@ -77,6 +79,7 @@ export const ComplaintNew = () => {
         throw new Error(data.error || 'Failed to submit incident report');
       }
 
+      showToast('Complaint submitted successfully.', 'success');
       navigate('/complaints');
     } catch (err: any) {
       setError(err.message || 'Error occurred while filing complaint');

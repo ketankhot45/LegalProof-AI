@@ -38,6 +38,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { StatusBadge } from '../components/StatusBadge';
+import { useFeedback } from '../contexts/FeedbackContext';
 
 interface VerifyResultState {
   status: 'SUCCESS' | 'HASH_MISMATCH' | 'FILE_MISSING' | 'UNAUTHORIZED' | 'SERVER_ERROR';
@@ -51,11 +52,11 @@ export const EvidenceDetails = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { showToast, confirmAction } = useFeedback();
   
   const [evidence, setEvidence] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [downloadError, setDownloadError] = useState<string | null>(null);
   
   // Operation states
   const [verifying, setVerifying] = useState(false);
@@ -63,10 +64,6 @@ export const EvidenceDetails = () => {
   const [analyzing, setAnalyzing] = useState(false);
   
   // Feedback messages
-  const [aiError, setAiError] = useState<string | null>(null);
-  const [aiSuccess, setAiSuccess] = useState<string | null>(null);
-  const [anchorError, setAnchorError] = useState<string | null>(null);
-  const [anchorSuccess, setAnchorSuccess] = useState<string | null>(null);
   const [verifyResult, setVerifyResult] = useState<VerifyResultState | null>(null);
   
   // Copy state trackers
@@ -242,8 +239,6 @@ export const EvidenceDetails = () => {
 
   const handleAnchor = async () => {
     setAnchoring(true);
-    setAnchorError(null);
-    setAnchorSuccess(null);
     try {
       const res = await fetch(`/api/v1/evidence/${id}/anchor`, {
         method: 'POST',
@@ -254,14 +249,14 @@ export const EvidenceDetails = () => {
       });
       const data = await res.json();
       if (res.ok) {
-        setAnchorSuccess('Evidence hash successfully anchored to Polygon Amoy smart contract registry!');
+        showToast('Evidence hash successfully anchored to Polygon Amoy smart contract registry!', 'success');
         fetchEvidence();
       } else {
-        setAnchorError(data.error || 'Failed to anchor evidence to blockchain');
+        showToast(data.error || 'Failed to anchor evidence to blockchain', 'error');
         fetchEvidence();
       }
     } catch (e: any) {
-      setAnchorError('Network or server communication error during blockchain anchoring');
+      showToast('Network or server communication error during blockchain anchoring', 'error');
     } finally {
       setAnchoring(false);
     }
@@ -269,8 +264,6 @@ export const EvidenceDetails = () => {
 
   const handleAnalyze = async () => {
     setAnalyzing(true);
-    setAiError(null);
-    setAiSuccess(null);
     try {
       const res = await fetch(`/api/v1/evidence/${id}/analyze`, {
         method: 'POST',
@@ -285,10 +278,10 @@ export const EvidenceDetails = () => {
         throw new Error(data.error || 'AI analysis failed');
       }
 
-      setAiSuccess('AI evidence analysis completed successfully!');
+      showToast('AI evidence analysis completed successfully!', 'success');
       fetchEvidence(); // refresh details
     } catch (err: any) {
-      setAiError(err.message || 'AI analysis failed');
+      showToast(err.message || 'AI analysis failed', 'error');
     } finally {
       setAnalyzing(false);
     }
@@ -318,7 +311,6 @@ export const EvidenceDetails = () => {
   };
 
   const handleDownload = async () => {
-    setDownloadError(null);
     try {
       const res = await fetch(`/api/v1/evidence/${id}/download`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
@@ -336,10 +328,10 @@ export const EvidenceDetails = () => {
         fetchEvidence(); // Refresh custody logs
       } else {
         const errJson = await res.json().catch(() => ({}));
-        setDownloadError(errJson.error || 'Failed to download evidence artifact');
+        showToast(errJson.error || 'Failed to download evidence artifact', 'error');
       }
     } catch (e: any) {
-      setDownloadError('Network error while retrieving evidence artifact');
+      showToast('Network error while retrieving evidence artifact', 'error');
     }
   };
 
@@ -472,19 +464,6 @@ export const EvidenceDetails = () => {
           </Link>
         </div>
       </div>
-
-      {/* Download Error Banner */}
-      {downloadError && (
-        <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-xl flex items-center justify-between text-red-400 text-xs">
-          <div className="flex items-center space-x-2.5">
-            <ShieldAlert className="w-4 h-4 shrink-0" />
-            <span>{downloadError}</span>
-          </div>
-          <button onClick={() => setDownloadError(null)} className="text-red-400 hover:text-red-300 font-semibold uppercase text-[10px]">
-            Dismiss
-          </button>
-        </div>
-      )}
 
       {/* Main Workspace Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -834,19 +813,6 @@ export const EvidenceDetails = () => {
             </div>
 
             <div className="p-5 sm:p-6 space-y-6">
-              {aiError && (
-                <div className="p-3.5 bg-red-500/10 border border-red-500/20 text-red-400 text-xs rounded-xl flex items-center justify-between">
-                  <span>{aiError}</span>
-                  <button onClick={() => setAiError(null)} className="text-red-400 font-semibold uppercase text-[10px]">Dismiss</button>
-                </div>
-              )}
-
-              {aiSuccess && (
-                <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs rounded-xl flex items-center justify-between">
-                  <span>{aiSuccess}</span>
-                  <button onClick={() => setAiSuccess(null)} className="text-emerald-400 font-semibold uppercase text-[10px]">Dismiss</button>
-                </div>
-              )}
 
               {analyzing && (
                 <div className="p-8 bg-purple-950/20 border border-purple-800/30 rounded-xl text-center space-y-3">
@@ -1318,7 +1284,15 @@ export const EvidenceDetails = () => {
               <div className="space-y-2">
                 <button
                   type="button"
-                  onClick={handleAnchor}
+                  onClick={() => {
+                    confirmAction({
+                      title: 'Anchor to Blockchain?',
+                      message: 'This will permanently record the cryptographic hash of this evidence on the Polygon Amoy testnet. This action is irreversible.',
+                      confirmText: 'Anchor on Polygon',
+                      destructive: false,
+                      onConfirm: handleAnchor
+                    });
+                  }}
                   disabled={
                     anchoring ||
                     evidence.status !== 'VERIFIED' ||
@@ -1343,20 +1317,6 @@ export const EvidenceDetails = () => {
                     Verify integrity before anchoring.
                   </p>
                 )}
-              </div>
-            )}
-
-            {anchorError && (
-              <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-xs rounded-xl flex items-center justify-between">
-                <span>{anchorError}</span>
-                <button onClick={() => setAnchorError(null)} className="text-red-400 font-semibold uppercase text-[10px]">Dismiss</button>
-              </div>
-            )}
-
-            {anchorSuccess && (
-              <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs rounded-xl flex items-center justify-between">
-                <span>{anchorSuccess}</span>
-                <button onClick={() => setAnchorSuccess(null)} className="text-emerald-400 font-semibold uppercase text-[10px]">Dismiss</button>
               </div>
             )}
           </div>

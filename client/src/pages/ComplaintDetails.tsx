@@ -21,10 +21,12 @@ import {
   Info
 } from 'lucide-react';
 import { StatusBadge } from '../components/StatusBadge';
+import { useFeedback } from '../contexts/FeedbackContext';
 
 export const ComplaintDetails = () => {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
+  const { showToast, confirmAction } = useFeedback();
   const navigate = useNavigate();
   const [complaint, setComplaint] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -34,7 +36,6 @@ export const ComplaintDetails = () => {
   const [selectedPriority, setSelectedPriority] = useState<string>('MEDIUM');
   const [validationError, setValidationError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [actionSuccess, setActionSuccess] = useState<string | null>(null);
   const [downloadingProofId, setDownloadingProofId] = useState<string | null>(null);
 
   const fetchComplaint = () => {
@@ -91,7 +92,7 @@ export const ComplaintDetails = () => {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch (err: any) {
-      alert(err.message || 'Error downloading file');
+      showToast(err.message || 'Error downloading file', 'error');
     } finally {
       setDownloadingProofId(null);
     }
@@ -99,7 +100,6 @@ export const ComplaintDetails = () => {
 
   const handleReview = async () => {
     setValidationError(null);
-    setActionSuccess(null);
     if (!reviewAction) return;
     
     if (reviewAction === 'REJECT' && !rejectionReason.trim()) {
@@ -132,12 +132,13 @@ export const ComplaintDetails = () => {
         case: data.case || complaint.case,
         caseId: data.case?.id || complaint.caseId
       });
-      setActionSuccess(
+      showToast(
         reviewAction === 'ESCALATE' 
           ? `Complaint successfully escalated to a formal Case investigation with ${selectedPriority} priority.` 
           : reviewAction === 'REJECT'
           ? 'Complaint marked as Rejected.'
-          : 'Complaint status updated to Under Review.'
+          : 'Complaint status updated to Under Review.',
+        'success'
       );
       setReviewAction('');
       setRejectionReason('');
@@ -198,19 +199,6 @@ export const ComplaintDetails = () => {
           </div>
         </div>
       </div>
-
-      {/* Success Notification Banner */}
-      {actionSuccess && (
-        <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center justify-between text-emerald-400 text-sm">
-          <div className="flex items-center">
-            <CheckCircle className="w-5 h-5 mr-3 shrink-0" />
-            <span>{actionSuccess}</span>
-          </div>
-          <button onClick={() => setActionSuccess(null)} className="text-emerald-400 hover:text-emerald-300 text-xs font-semibold">
-            Dismiss
-          </button>
-        </div>
-      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content Body */}

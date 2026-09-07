@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { Link } from 'react-router';
 import { useAuth } from '../contexts/AuthContext';
 import { 
@@ -12,7 +12,8 @@ import {
   ArrowRight,
   Inbox,
   Layers,
-  CheckCircle2
+  CheckCircle2,
+  ChevronDown
 } from 'lucide-react';
 import { StatusBadge } from '../components/StatusBadge';
 
@@ -25,8 +26,21 @@ export const CasesList = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
+  const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const [quickFilter, setQuickFilter] = useState<QuickFilter>('ALL');
   const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setStatusDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
 
   const fetchCases = (isManual = false) => {
     if (isManual) setRefreshing(true);
@@ -113,6 +127,15 @@ export const CasesList = () => {
   };
 
   const isFiltered = searchQuery !== '' || statusFilter !== 'ALL' || quickFilter !== 'ALL';
+
+  const STATUS_OPTIONS = [
+    { value: 'ALL', label: 'All Statuses' },
+    { value: 'OPENED', label: 'Opened' },
+    { value: 'ASSIGNED', label: 'Assigned' },
+    { value: 'ACTIVE_INVESTIGATION', label: 'Active Investigation' },
+    { value: 'UNDER_REVIEW', label: 'Under Review' },
+    { value: 'CLOSED', label: 'Closed' }
+  ];
 
   return (
     <div className="space-y-6">
@@ -231,20 +254,51 @@ export const CasesList = () => {
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
-            <div className="flex items-center space-x-1.5 bg-zinc-950 border border-zinc-800 rounded-xl px-2.5 py-1">
-              <Filter className="w-3.5 h-3.5 text-zinc-500" />
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="bg-transparent text-xs text-zinc-300 focus:outline-none py-1 pr-2"
+            <div className="relative" ref={dropdownRef}>
+              <button
+                type="button"
+                onClick={() => setStatusDropdownOpen(!statusDropdownOpen)}
+                className="flex items-center space-x-1.5 bg-zinc-950 border border-zinc-800 rounded-xl px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500/50 hover:bg-zinc-900 transition-colors"
+                aria-haspopup="listbox"
+                aria-expanded={statusDropdownOpen}
               >
-                <option value="ALL">All Statuses</option>
-                <option value="OPENED">Opened</option>
-                <option value="ASSIGNED">Assigned</option>
-                <option value="ACTIVE_INVESTIGATION">Active Investigation</option>
-                <option value="UNDER_REVIEW">Under Review</option>
-                <option value="CLOSED">Closed</option>
-              </select>
+                <Filter className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
+                <span className="text-xs text-zinc-300 min-w-[100px] text-left pr-1">
+                  {STATUS_OPTIONS.find(opt => opt.value === statusFilter)?.label || 'All Statuses'}
+                </span>
+                <ChevronDown className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
+              </button>
+
+              {statusDropdownOpen && (
+                <ul
+                  className="absolute right-0 top-full mt-1.5 w-44 bg-zinc-900 border border-zinc-800 rounded-xl shadow-lg shadow-black/50 overflow-hidden z-20 py-1"
+                  role="listbox"
+                >
+                  {STATUS_OPTIONS.map((option) => (
+                    <li key={option.value}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setStatusFilter(option.value);
+                          setStatusDropdownOpen(false);
+                        }}
+                        className={`w-full text-left px-3 py-2 text-xs transition-colors flex items-center justify-between ${
+                          statusFilter === option.value
+                            ? 'bg-indigo-600/10 text-indigo-400 font-medium'
+                            : 'text-zinc-300 hover:bg-zinc-800/80 hover:text-white'
+                        }`}
+                        role="option"
+                        aria-selected={statusFilter === option.value}
+                      >
+                        {option.label}
+                        {statusFilter === option.value && (
+                          <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                        )}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
 
             {isFiltered && (

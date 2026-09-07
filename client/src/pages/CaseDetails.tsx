@@ -23,17 +23,18 @@ import {
 } from 'lucide-react';
 import { EvidenceList } from '../components/EvidenceList';
 import { StatusBadge } from '../components/StatusBadge';
+import { useFeedback } from '../contexts/FeedbackContext';
 
 export const CaseDetails = () => {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
+  const { showToast, confirmAction } = useFeedback();
   const navigate = useNavigate();
   const [caseData, setCaseData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [noteContent, setNoteContent] = useState('');
   const [submittingNote, setSubmittingNote] = useState(false);
-  const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
 
   // Assignment request states
   const [showRequestForm, setShowRequestForm] = useState(false);
@@ -71,7 +72,6 @@ export const CaseDetails = () => {
   }, [id]);
 
   const handleUpdateStatus = async (status: string) => {
-    setFeedbackMessage(null);
     try {
       const res = await fetch(`/api/v1/cases/${id}`, {
         method: 'PUT',
@@ -82,7 +82,7 @@ export const CaseDetails = () => {
         body: JSON.stringify({ status }),
       });
       if (res.ok) {
-        setFeedbackMessage(`Case status changed to ${status.replace('_', ' ')}`);
+        showToast(`Case status changed to ${status.replace('_', ' ')}`, 'success');
         fetchCase();
       }
     } catch (e) {
@@ -93,7 +93,6 @@ export const CaseDetails = () => {
   const handleRequestAssignment = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmittingRequest(true);
-    setFeedbackMessage(null);
     try {
       const res = await fetch(`/api/v1/cases/${id}/assignment-requests`, {
         method: 'POST',
@@ -107,19 +106,18 @@ export const CaseDetails = () => {
       if (!res.ok) {
         throw new Error(data.error || 'Failed to submit assignment request');
       }
-      setFeedbackMessage('Assignment request submitted successfully. Awaiting Administrator approval.');
+      showToast('Assignment request submitted successfully. Awaiting Administrator approval.', 'success');
       setShowRequestForm(false);
       setRequestNotes('');
       fetchCase();
     } catch (err: any) {
-      alert(err.message || 'Failed to submit request');
+      showToast(err.message || 'Failed to submit request', 'error');
     } finally {
       setSubmittingRequest(false);
     }
   };
 
   const handleReviewRequest = async (requestId: string, action: 'APPROVE' | 'REJECT') => {
-    setFeedbackMessage(null);
     setReviewingRequestId(requestId);
     try {
       const res = await fetch(`/api/v1/cases/assignment-requests/${requestId}/review`, {
@@ -137,16 +135,17 @@ export const CaseDetails = () => {
       if (!res.ok) {
         throw new Error(data.error || `Failed to ${action.toLowerCase()} request`);
       }
-      setFeedbackMessage(
+      showToast(
         action === 'APPROVE'
           ? 'Investigator assignment approved successfully.'
-          : 'Assignment request rejected.'
+          : 'Assignment request rejected.',
+        'success'
       );
       setRejectingRequestId(null);
       setRejectionReason('');
       fetchCase();
     } catch (err: any) {
-      alert(err.message || 'Review action failed');
+      showToast(err.message || 'Review action failed', 'error');
     } finally {
       setReviewingRequestId(null);
     }
@@ -156,7 +155,6 @@ export const CaseDetails = () => {
     e.preventDefault();
     if (!noteContent.trim()) return;
     setSubmittingNote(true);
-    setFeedbackMessage(null);
     try {
       const res = await fetch(`/api/v1/cases/${id}/notes`, {
         method: 'POST',
@@ -168,11 +166,11 @@ export const CaseDetails = () => {
       });
       if (res.ok) {
         setNoteContent('');
-        setFeedbackMessage('Investigation note recorded.');
+        showToast('Investigation note recorded.', 'success');
         fetchCase();
       } else {
         const data = await res.json().catch(() => ({}));
-        alert(data.error || 'Failed to record note');
+        showToast(data.error || 'Failed to record note', 'error');
       }
     } finally {
       setSubmittingNote(false);
@@ -278,19 +276,6 @@ export const CaseDetails = () => {
           </div>
         )}
       </div>
-
-      {/* Feedback banner */}
-      {feedbackMessage && (
-        <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center justify-between text-emerald-400 text-xs">
-          <div className="flex items-center">
-            <CheckCircle className="w-4 h-4 mr-2.5 shrink-0" />
-            <span>{feedbackMessage}</span>
-          </div>
-          <button onClick={() => setFeedbackMessage(null)} className="text-emerald-400 hover:text-emerald-300 font-semibold">
-            ✕
-          </button>
-        </div>
-      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Primary Investigation Area */}
