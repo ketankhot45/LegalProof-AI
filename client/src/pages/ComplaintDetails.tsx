@@ -23,6 +23,7 @@ import {
 import { StatusBadge } from '../components/StatusBadge';
 import { useFeedback } from '../contexts/FeedbackContext';
 import { Breadcrumbs } from '../components/Breadcrumbs';
+import { HashDisplay } from '../components/HashDisplay';
 
 export const ComplaintDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -187,17 +188,19 @@ export const ComplaintDetails = () => {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center space-x-3 mb-1">
+          <div className="flex flex-wrap items-center gap-3 mb-1.5">
             <h2 className="text-xl font-semibold text-white tracking-tight">Complaint Record</h2>
             <StatusBadge type="complaint" status={complaint.status} size="md" />
           </div>
-          <p className="text-xs text-zinc-500 font-mono">ID: {complaint.id}</p>
+          <div className="mt-1">
+            <HashDisplay hash={complaint.id} truncate="middle" size="xs" variant="badge" label="Complaint ID" />
+          </div>
         </div>
         
         {complaint.caseId && isInvestigator && (
           <Link
             to={`/cases/${complaint.caseId}`}
-            className="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-medium transition-colors shadow-sm"
+            className="inline-flex items-center px-4 py-2.5 min-h-[44px] bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-semibold transition-colors shadow-sm self-start sm:self-auto"
           >
             <Briefcase className="w-4 h-4 mr-2" />
             Open Case Dossier

@@ -15,6 +15,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { StatusBadge } from '../components/StatusBadge';
+import { HashDisplay } from '../components/HashDisplay';
 
 interface EvidenceItem {
   id: string;
@@ -390,112 +391,171 @@ export const EvidenceVault = () => {
             ) : null}
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-zinc-400">
-              <thead className="bg-zinc-950/60 text-[11px] uppercase tracking-wider text-zinc-500 border-b border-zinc-800 whitespace-nowrap">
-                <tr>
-                  <th className="px-5 py-3.5 font-semibold">Artifact Name</th>
-                  <th className="px-5 py-3.5 font-semibold">Associated Case</th>
-                  <th className="px-5 py-3.5 font-semibold">Integrity Status</th>
-                  <th className="px-5 py-3.5 font-semibold">Blockchain Proof</th>
-                  <th className="px-5 py-3.5 font-semibold">Uploaded</th>
-                  <th className="px-5 py-3.5 font-semibold text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-800/80">
-                {filteredEvidence.map((item) => {
-                  const isVerified = item.status === 'VERIFIED';
-                  const isFailed = item.status === 'INTEGRITY_FAILED';
-                  const isAnchored = item.blockchainStatus === 'ANCHORED';
-                  const isAnchoring = item.blockchainStatus === 'ANCHORING';
+          <div>
+            {/* Desktop Table View (Hidden on mobile) */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left text-sm text-zinc-400">
+                <thead className="bg-zinc-950/60 text-[11px] uppercase tracking-wider text-zinc-500 border-b border-zinc-800 whitespace-nowrap">
+                  <tr>
+                    <th className="px-5 py-3.5 font-semibold">Artifact Name</th>
+                    <th className="px-5 py-3.5 font-semibold">Associated Case</th>
+                    <th className="px-5 py-3.5 font-semibold">Integrity Status</th>
+                    <th className="px-5 py-3.5 font-semibold">Blockchain Proof</th>
+                    <th className="px-5 py-3.5 font-semibold">Uploaded</th>
+                    <th className="px-5 py-3.5 font-semibold text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-800/80">
+                  {filteredEvidence.map((item) => {
+                    const isVerified = item.status === 'VERIFIED';
+                    const isFailed = item.status === 'INTEGRITY_FAILED';
 
-                  return (
-                    <tr key={item.id} className="hover:bg-zinc-800/30 transition-colors">
-                      {/* Artifact Name & Type */}
-                      <td className="px-5 py-3.5 whitespace-nowrap">
-                        <div className="flex items-center space-x-3">
-                          <div className="p-2 rounded-lg bg-zinc-800/90 border border-zinc-700/80 text-zinc-300 shrink-0">
-                            {isVerified ? (
-                              <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                            ) : isFailed ? (
-                              <ShieldAlert className="w-4 h-4 text-red-400" />
-                            ) : (
-                              <File className="w-4 h-4 text-indigo-400" />
-                            )}
-                          </div>
-                          <div className="min-w-0">
-                            <Link
-                              to={`/evidence/${item.id}`}
-                              className="font-medium text-white hover:text-indigo-300 transition-colors block max-w-[220px] truncate"
-                              title={item.fileName}
-                            >
-                              {item.fileName}
-                            </Link>
-                            <div className="flex items-center gap-1.5 text-[11px] text-zinc-500 mt-0.5">
-                              <span>{(item.size / (1024 * 1024)).toFixed(2)} MB</span>
-                              <span>•</span>
-                              <span className="font-mono truncate max-w-[120px]">{item.mimeType}</span>
+                    return (
+                      <tr key={item.id} className="hover:bg-zinc-800/30 transition-colors">
+                        {/* Artifact Name & Type */}
+                        <td className="px-5 py-3.5 whitespace-nowrap">
+                          <div className="flex items-center space-x-3">
+                            <div className="p-2 rounded-lg bg-zinc-800/90 border border-zinc-700/80 text-zinc-300 shrink-0">
+                              {isVerified ? (
+                                <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                              ) : isFailed ? (
+                                <ShieldAlert className="w-4 h-4 text-red-400" />
+                              ) : (
+                                <File className="w-4 h-4 text-indigo-400" />
+                              )}
+                            </div>
+                            <div className="min-w-0">
+                              <Link
+                                to={`/evidence/${item.id}`}
+                                className="font-medium text-white hover:text-indigo-300 transition-colors block max-w-[220px] truncate"
+                                title={item.fileName}
+                              >
+                                {item.fileName}
+                              </Link>
+                              <div className="flex items-center gap-1.5 text-[11px] text-zinc-500 mt-0.5">
+                                <span>{(item.size / (1024 * 1024)).toFixed(2)} MB</span>
+                                <span>•</span>
+                                <span className="font-mono truncate max-w-[120px]">{item.mimeType}</span>
+                              </div>
                             </div>
                           </div>
+                        </td>
+
+                        {/* Associated Case */}
+                        <td className="px-5 py-3.5 whitespace-nowrap">
+                          <Link
+                            to={`/cases/${item.caseId}`}
+                            className="text-xs font-medium text-zinc-300 hover:text-indigo-400 transition-colors flex items-center max-w-[200px] truncate"
+                            title={item.caseTitle}
+                          >
+                            <Briefcase className="w-3.5 h-3.5 mr-1.5 text-zinc-500 shrink-0" />
+                            <span className="truncate">{item.caseTitle || 'View Case'}</span>
+                          </Link>
+                        </td>
+
+                        {/* Integrity Status */}
+                        <td className="px-5 py-3.5 whitespace-nowrap">
+                          <StatusBadge type="evidence" status={item.status} size="sm" />
+                        </td>
+
+                        {/* Blockchain Status */}
+                        <td className="px-5 py-3.5 whitespace-nowrap">
+                          <StatusBadge type="blockchain" status={item.blockchainStatus || 'NOT_ANCHORED'} size="sm" />
+                        </td>
+
+                        {/* Upload Date & Uploader */}
+                        <td className="px-5 py-3.5 whitespace-nowrap text-xs text-zinc-400">
+                          <div>{new Date(item.createdAt).toLocaleDateString()}</div>
+                          <div className="text-[11px] text-zinc-500 truncate max-w-[130px]">
+                            by {item.uploadedBy?.name || 'Investigator'}
+                          </div>
+                        </td>
+
+                        {/* Action */}
+                        <td className="px-5 py-3.5 whitespace-nowrap text-right">
+                          <Link
+                            to={`/evidence/${item.id}`}
+                            className="inline-flex items-center text-xs font-semibold text-indigo-400 hover:text-indigo-300 bg-indigo-600/10 hover:bg-indigo-600/20 px-3 py-2 min-h-[36px] rounded-lg border border-indigo-500/30 transition-colors"
+                          >
+                            View Evidence
+                            <ArrowRight className="w-3 h-3 ml-1" />
+                          </Link>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Card List View (Visible on mobile/tablet) */}
+            <div className="md:hidden divide-y divide-zinc-800">
+              {filteredEvidence.map((item) => {
+                const isVerified = item.status === 'VERIFIED';
+                const isFailed = item.status === 'INTEGRITY_FAILED';
+
+                return (
+                  <div key={item.id} className="p-4 space-y-3 hover:bg-zinc-800/30 transition-colors">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-start space-x-3 min-w-0 flex-1">
+                        <div className="p-2 rounded-lg bg-zinc-800/90 border border-zinc-700/80 text-zinc-300 shrink-0 mt-0.5">
+                          {isVerified ? (
+                            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                          ) : isFailed ? (
+                            <ShieldAlert className="w-4 h-4 text-red-400" />
+                          ) : (
+                            <File className="w-4 h-4 text-indigo-400" />
+                          )}
                         </div>
-                      </td>
+                        <div className="min-w-0 flex-1">
+                          <Link
+                            to={`/evidence/${item.id}`}
+                            className="font-medium text-sm text-white hover:text-indigo-300 transition-colors block truncate"
+                          >
+                            {item.fileName}
+                          </Link>
+                          <div className="text-xs text-zinc-500 mt-0.5">
+                            {(item.size / (1024 * 1024)).toFixed(2)} MB • {item.mimeType}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
 
-                      {/* Associated Case */}
-                      <td className="px-5 py-3.5 whitespace-nowrap">
-                        <Link
-                          to={`/cases/${item.caseId}`}
-                          className="text-xs font-medium text-zinc-300 hover:text-indigo-400 transition-colors flex items-center max-w-[200px] truncate"
-                          title={item.caseTitle}
-                        >
-                          <Briefcase className="w-3.5 h-3.5 mr-1.5 text-zinc-500 shrink-0" />
-                          <span className="truncate">{item.caseTitle || 'View Case'}</span>
-                        </Link>
-                      </td>
+                    {item.sha256Hash && (
+                      <div className="bg-zinc-950 p-2 rounded-lg border border-zinc-800 flex items-center justify-between gap-2">
+                        <span className="text-[10px] uppercase font-semibold text-zinc-500 shrink-0">SHA-256</span>
+                        <HashDisplay hash={item.sha256Hash} truncate="middle" size="xs" />
+                      </div>
+                    )}
 
-                      {/* Integrity Status */}
-                      <td className="px-5 py-3.5 whitespace-nowrap">
+                    <div className="flex items-center justify-between gap-2 pt-1 border-t border-zinc-800/60 text-xs">
+                      <div className="flex flex-wrap items-center gap-1.5">
                         <StatusBadge type="evidence" status={item.status} size="sm" />
-                      </td>
-
-                      {/* Blockchain Status */}
-                      <td className="px-5 py-3.5 whitespace-nowrap">
                         <StatusBadge type="blockchain" status={item.blockchainStatus || 'NOT_ANCHORED'} size="sm" />
-                      </td>
-
-                      {/* Upload Date & Uploader */}
-                      <td className="px-5 py-3.5 whitespace-nowrap text-xs text-zinc-400">
-                        <div>{new Date(item.createdAt).toLocaleDateString()}</div>
-                        <div className="text-[11px] text-zinc-500 truncate max-w-[130px]">
-                          by {item.uploadedBy?.name || 'Investigator'}
-                        </div>
-                      </td>
-
-                      {/* Action */}
-                      <td className="px-5 py-3.5 whitespace-nowrap text-right">
-                        <Link
-                          to={`/evidence/${item.id}`}
-                          className="inline-flex items-center text-xs font-semibold text-indigo-400 hover:text-indigo-300 bg-indigo-600/10 hover:bg-indigo-600/20 px-3 py-1.5 rounded-lg border border-indigo-500/30 transition-colors"
-                        >
-                          View Evidence
-                          <ArrowRight className="w-3 h-3 ml-1" />
-                        </Link>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                      </div>
+                      <Link
+                        to={`/evidence/${item.id}`}
+                        className="inline-flex items-center justify-center text-xs font-semibold text-indigo-400 hover:text-indigo-300 bg-indigo-600/10 hover:bg-indigo-600/20 px-3.5 py-2 min-h-[40px] rounded-lg border border-indigo-500/30 transition-colors"
+                      >
+                        View
+                        <ArrowRight className="w-3 h-3 ml-1" />
+                      </Link>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
       </div>
 
       {/* Case Selection Modal for Evidence Upload */}
       {showCaseSelectModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm overflow-y-auto">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl space-y-4 max-h-[90vh] flex flex-col my-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-zinc-800 shrink-0">
               <div className="flex items-center space-x-2.5">
-                <div className="p-2 bg-indigo-500/10 text-indigo-400 rounded-lg border border-indigo-500/20">
+                <div className="p-2 bg-indigo-500/10 text-indigo-400 rounded-lg border border-indigo-500/20 shrink-0">
                   <Briefcase className="w-4 h-4" />
                 </div>
                 <div>
@@ -506,14 +566,14 @@ export const EvidenceVault = () => {
               <button
                 type="button"
                 onClick={() => setShowCaseSelectModal(false)}
-                className="text-zinc-500 hover:text-zinc-300 p-1 rounded-lg transition-colors"
+                className="text-zinc-500 hover:text-zinc-300 p-2 min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-lg transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             {uploadableCases.length > 0 ? (
-              <div className="space-y-4 pt-1">
+              <div className="space-y-4 pt-1 overflow-y-auto flex-1">
                 <div>
                   <label className="block text-xs font-medium text-zinc-300 mb-1.5">
                     Assigned Investigation Case
@@ -521,7 +581,7 @@ export const EvidenceVault = () => {
                   <select
                     value={modalCaseId || (uploadableCases[0]?.id ?? '')}
                     onChange={(e) => setModalCaseId(e.target.value)}
-                    className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2.5 text-zinc-100 text-xs focus:border-indigo-500 focus:outline-none"
+                    className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2.5 min-h-[44px] text-zinc-100 text-xs focus:border-indigo-500 focus:outline-none"
                   >
                     {uploadableCases.map((c) => (
                       <option key={c.id} value={c.id}>
@@ -531,11 +591,11 @@ export const EvidenceVault = () => {
                   </select>
                 </div>
 
-                <div className="flex items-center justify-end space-x-2 pt-2">
+                <div className="flex items-center justify-end space-x-2 pt-2 shrink-0">
                   <button
                     type="button"
                     onClick={() => setShowCaseSelectModal(false)}
-                    className="px-3.5 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-xl text-xs font-medium transition-colors"
+                    className="px-4 py-2.5 min-h-[44px] bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-xl text-xs font-medium transition-colors"
                   >
                     Cancel
                   </button>
@@ -543,7 +603,7 @@ export const EvidenceVault = () => {
                     type="button"
                     onClick={handleProceedUpload}
                     disabled={!modalCaseId && !uploadableCases[0]?.id}
-                    className="flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold transition-colors disabled:opacity-50"
+                    className="flex items-center justify-center px-4 py-2.5 min-h-[44px] bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold transition-colors disabled:opacity-50"
                   >
                     <Upload className="w-3.5 h-3.5 mr-1.5" />
                     Continue to Upload
@@ -551,7 +611,7 @@ export const EvidenceVault = () => {
                 </div>
               </div>
             ) : (
-              <div className="space-y-4 pt-2 text-center">
+              <div className="space-y-4 pt-2 text-center overflow-y-auto flex-1">
                 <p className="text-xs text-zinc-400">
                   You are not currently assigned to any active investigation cases. You must be assigned as the lead investigator on a case before uploading forensic evidence.
                 </p>
@@ -559,7 +619,7 @@ export const EvidenceVault = () => {
                   <button
                     type="button"
                     onClick={() => setShowCaseSelectModal(false)}
-                    className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-xl text-xs font-medium transition-colors"
+                    className="px-5 py-2.5 min-h-[44px] bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-xl text-xs font-medium transition-colors"
                   >
                     Close
                   </button>

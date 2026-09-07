@@ -16,6 +16,7 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { StatusBadge } from '../components/StatusBadge';
+import { HashDisplay } from '../components/HashDisplay';
 
 type QuickFilter = 'ALL' | 'ASSIGNED_TO_ME' | 'UNASSIGNED';
 
@@ -422,7 +423,7 @@ export const CasesList = () => {
           </div>
         ) : (
           <div>
-            <div className="px-6 py-3 border-b border-zinc-800 bg-zinc-950/40 text-xs text-zinc-500 flex justify-between items-center">
+            <div className="px-5 sm:px-6 py-3 border-b border-zinc-800 bg-zinc-950/40 text-xs text-zinc-500 flex justify-between items-center">
               <span>Showing <strong className="text-zinc-300">{filteredCases.length}</strong> of {cases.length} cases</span>
               {quickFilter !== 'ALL' && (
                 <span className="text-[11px] text-zinc-400">
@@ -430,7 +431,9 @@ export const CasesList = () => {
                 </span>
               )}
             </div>
-            <div className="overflow-x-auto">
+
+            {/* Desktop Table (Hidden on Mobile) */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left text-sm text-zinc-400">
                 <thead className="bg-zinc-950/70 text-[11px] uppercase tracking-wider text-zinc-500 border-b border-zinc-800 whitespace-nowrap">
                   <tr>
@@ -445,11 +448,13 @@ export const CasesList = () => {
                 <tbody className="divide-y divide-zinc-800">
                   {filteredCases.map((c: any) => (
                     <tr key={c.id} className="hover:bg-zinc-800/40 transition-colors">
-                      <td className="px-6 py-4 max-w-[220px] sm:max-w-[320px]">
+                      <td className="px-6 py-4 max-w-[240px] lg:max-w-[320px]">
                         <Link to={`/cases/${c.id}`} className="font-medium text-white hover:text-indigo-300 block transition-colors truncate">
                           {c.title}
                         </Link>
-                        <span className="text-[11px] text-zinc-500 font-mono truncate block mt-0.5">Ref: {c.id.substring(0, 8)}...</span>
+                        <div className="mt-1">
+                          <HashDisplay hash={c.id} truncate="short" size="xs" variant="inline" label="Ref" />
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 py-0.5 text-xs rounded-md border ${getPriorityBadge(c.priority)}`}>
@@ -495,7 +500,7 @@ export const CasesList = () => {
                         <div className="inline-flex items-center justify-end space-x-2">
                           <Link 
                             to={`/cases/${c.id}`} 
-                            className="inline-flex items-center text-xs font-semibold text-indigo-300 hover:text-white bg-indigo-600/15 hover:bg-indigo-600/30 px-3 py-1.5 rounded-lg border border-indigo-500/30 transition-colors"
+                            className="inline-flex items-center text-xs font-semibold text-indigo-300 hover:text-white bg-indigo-600/15 hover:bg-indigo-600/30 px-3 py-2 min-h-[36px] rounded-lg border border-indigo-500/30 transition-colors"
                           >
                             <span>{!c.investigatorId && user?.role === 'INVESTIGATOR' ? 'Review / Request Lead' : 'View Case'}</span>
                             <ArrowRight className="w-3 h-3 ml-1.5" />
@@ -506,6 +511,57 @@ export const CasesList = () => {
                   ))}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile Card View (Visible on Mobile) */}
+            <div className="md:hidden divide-y divide-zinc-800">
+              {filteredCases.map((c: any) => (
+                <div key={c.id} className="p-4 space-y-3 hover:bg-zinc-800/30 transition-colors">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <Link to={`/cases/${c.id}`} className="font-semibold text-sm text-white hover:text-indigo-300 block truncate transition-colors">
+                        {c.title}
+                      </Link>
+                      <div className="mt-1">
+                        <HashDisplay hash={c.id} truncate="short" size="xs" variant="inline" label="Ref" />
+                      </div>
+                    </div>
+                    <span className={`px-2 py-0.5 text-[11px] rounded-md border shrink-0 ${getPriorityBadge(c.priority)}`}>
+                      {c.priority}
+                    </span>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-400">
+                    <StatusBadge type="case" status={c.status} size="sm" />
+                    <span>•</span>
+                    {c.investigator ? (
+                      <span className="text-zinc-300 flex items-center gap-1">
+                        <span>{c.investigator.name}</span>
+                        {c.investigatorId === user?.id && (
+                          <span className="text-[10px] bg-indigo-500/20 text-indigo-300 px-1 py-0.2 rounded border border-indigo-500/30">You</span>
+                        )}
+                      </span>
+                    ) : (
+                      <span className="text-amber-400 font-medium bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20 text-[10px]">
+                        Unassigned Lead
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2 pt-2 border-t border-zinc-800/60 text-xs">
+                    <span className="text-zinc-500 text-[11px]">
+                      {new Date(c.createdAt).toLocaleDateString()}
+                    </span>
+                    <Link 
+                      to={`/cases/${c.id}`} 
+                      className="inline-flex items-center justify-center text-xs font-semibold text-indigo-300 hover:text-white bg-indigo-600/20 hover:bg-indigo-600/30 px-3.5 py-2 min-h-[40px] rounded-lg border border-indigo-500/30 transition-colors"
+                    >
+                      <span>{!c.investigatorId && user?.role === 'INVESTIGATOR' ? 'Review / Request' : 'View Case'}</span>
+                      <ArrowRight className="w-3 h-3 ml-1.5" />
+                    </Link>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}

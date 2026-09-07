@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { useAuth } from '../contexts/AuthContext';
 import { useFeedback } from '../contexts/FeedbackContext';
-import { ClipboardList, ShieldAlert, CheckCircle, XCircle, ArrowRight, User, RefreshCw } from 'lucide-react';
+import { ClipboardList, ShieldAlert, CheckCircle, XCircle, ArrowRight, User, RefreshCw, X, AlertCircle } from 'lucide-react';
 import { Breadcrumbs } from '../components/Breadcrumbs';
+import { HashDisplay } from '../components/HashDisplay';
 
 export const AdminAssignmentQueue = () => {
   const { user, token } = useAuth();
@@ -13,6 +14,11 @@ export const AdminAssignmentQueue = () => {
   const [error, setError] = useState<string | null>(null);
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  
+  // In-app Rejection Dialog state
+  const [rejectingRequest, setRejectingRequest] = useState<any | null>(null);
+  const [rejectionReason, setRejectionReason] = useState('');
+  const [rejectionError, setRejectionError] = useState<string | null>(null);
 
   const fetchRequests = async (isManual = false) => {
     if (isManual) setRefreshing(true);
@@ -45,20 +51,9 @@ export const AdminAssignmentQueue = () => {
     }
   }, [user, token]);
 
-  const handleReview = async (requestId: string, action: 'APPROVE' | 'REJECT') => {
+  const handleApprove = async (requestId: string) => {
     setProcessingId(requestId);
     try {
-      let rejectionReason: string | undefined;
-      if (action === 'REJECT') {
-        const notes = window.prompt('Please provide a reason for rejection (required):');
-        if (notes === null) return; // cancelled
-        if (!notes.trim()) {
-          showToast('Rejection reason is required.', 'error');
-          return;
-        }
-        rejectionReason = notes.trim();
-      }
-
       const authToken = token || localStorage.getItem('token');
       const res = await fetch(`/api/v1/cases/assignment-requests/${requestId}/review`, {
         method: 'POST',
@@ -67,23 +62,63 @@ export const AdminAssignmentQueue = () => {
           Authorization: `Bearer ${authToken}`,
         },
         body: JSON.stringify({
-          action,
-          rejectionReason,
+          action: 'APPROVE',
         }),
       });
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || 'Failed to review request');
+        throw new Error(data.error || 'Failed to approve request');
       }
 
-      showToast(
-        action === 'APPROVE'
-          ? 'Assignment request approved successfully.'
-          : 'Assignment request rejected.',
-        'success'
-      );
+      showToast('Assignment request approved successfully.', 'success');
       setRequests((current) => current.filter((req) => req.id !== requestId));
+    } catch (err: any) {
+      showToast(err.message || 'Action failed', 'error');
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const openRejectModal = (request: any) => {
+    setRejectingRequest(request);
+    setRejectionReason('');
+    setRejectionError(null);
+  };
+
+  const handleConfirmReject = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!rejectionReason.trim()) {
+      setRejectionError('Please provide a reason for rejecting this assignment request.');
+      return;
+    }
+
+    if (!rejectingRequest) return;
+    const requestId = rejectingRequest.id;
+    setProcessingId(requestId);
+
+    try {
+      const authToken = token || localStorage.getItem('token');
+      const res = await fetch(`/api/v1/cases/assignment-requests/${requestId}/review`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: JSON.stringify({
+          action: 'REJECT',
+          rejectionReason: rejectionReason.trim(),
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to reject request');
+      }
+
+      showToast('Assignment request rejected.', 'success');
+      setRequests((current) => current.filter((req) => req.id !== requestId));
+      setRejectingRequest(null);
     } catch (err: any) {
       showToast(err.message || 'Action failed', 'error');
     } finally {
@@ -110,11 +145,11 @@ export const AdminAssignmentQueue = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-white tracking-tight flex items-center">
-            <ClipboardList className="w-6 h-6 mr-2 text-indigo-400" />
+            <ClipboardList className="w-6 h-6 mr-2 text-indigo-400 shrink-0" />
             Pending Assignment Requests
           </h1>
           <p className="text-sm text-zinc-400 mt-1">
-            Review and approve investigator case assignments.
+            Review and triage lead investigator case claims.
           </p>
         </div>
 
@@ -122,7 +157,7 @@ export const AdminAssignmentQueue = () => {
           type="button"
           onClick={() => fetchRequests(true)}
           disabled={refreshing || loading}
-          className="p-2 bg-zinc-900 border border-zinc-800 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors disabled:opacity-50 self-start sm:self-auto"
+          className="p-2.5 min-h-[44px] min-w-[44px] bg-zinc-900 border border-zinc-800 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors disabled:opacity-50 inline-flex items-center justify-center self-start sm:self-auto"
           title="Refresh assignment queue"
         >
           <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
@@ -130,8 +165,9 @@ export const AdminAssignmentQueue = () => {
       </div>
 
       {loading ? (
-        <div className="p-12 text-center text-zinc-500 text-sm">
-          Loading pending requests...
+        <div className="p-12 text-center text-zinc-500 text-sm flex flex-col items-center space-y-2">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-500"></div>
+          <span>Loading pending requests...</span>
         </div>
       ) : error ? (
         <div className="p-8 bg-rose-500/10 border border-rose-500/20 rounded-xl text-center">
@@ -150,48 +186,133 @@ export const AdminAssignmentQueue = () => {
       ) : (
         <div className="space-y-4">
           {requests.map((req) => (
-            <div key={req.id} className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden flex flex-col sm:flex-row">
-              <div className="p-5 flex-1 flex flex-col justify-center border-b sm:border-b-0 sm:border-r border-zinc-800">
-                <div className="flex items-center space-x-2 text-xs font-medium text-zinc-400 mb-2">
-                  <User className="w-3.5 h-3.5 text-indigo-400" />
-                  <span className="text-white font-medium">{req.investigator?.name || 'Unknown Investigator'}</span>
+            <div key={req.id} className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden flex flex-col md:flex-row shadow-sm">
+              <div className="p-5 flex-1 flex flex-col justify-center border-b md:border-b-0 md:border-r border-zinc-800 space-y-2">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-zinc-400">
+                  <div className="flex items-center space-x-1.5 font-medium text-zinc-200">
+                    <User className="w-3.5 h-3.5 text-indigo-400" />
+                    <span>{req.investigator?.name || 'Unknown Investigator'}</span>
+                  </div>
                   <span>({req.investigator?.email})</span>
                   <span>•</span>
                   <span>{new Date(req.createdAt).toLocaleString()}</span>
                 </div>
-                <h3 className="text-sm font-semibold text-white truncate mb-1">{req.case?.title || 'Untitled Case'}</h3>
+
+                <div>
+                  <h3 className="text-base font-semibold text-white">{req.case?.title || 'Untitled Case'}</h3>
+                  <div className="mt-1">
+                    <HashDisplay hash={req.caseId} truncate="short" size="xs" variant="inline" label="Case ID" />
+                  </div>
+                </div>
+
                 {req.notes && (
-                  <p className="text-xs text-zinc-400 italic mb-2 bg-zinc-950/60 p-2 rounded-lg border border-zinc-800">
+                  <p className="text-xs text-zinc-300 italic bg-zinc-950/80 p-3 rounded-lg border border-zinc-800 leading-relaxed">
                     "{req.notes}"
                   </p>
                 )}
-                <Link to={`/cases/${req.caseId}`} className="text-xs text-indigo-400 hover:text-indigo-300 flex items-center mt-1 w-fit">
-                  Review Case Context <ArrowRight className="w-3 h-3 ml-1" />
+
+                <Link to={`/cases/${req.caseId}`} className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 inline-flex items-center pt-1">
+                  <span>Review Full Case Context</span>
+                  <ArrowRight className="w-3.5 h-3.5 ml-1" />
                 </Link>
               </div>
               
-              <div className="p-5 bg-zinc-950/50 flex items-center justify-end sm:justify-center space-x-3 sm:min-w-[200px]">
+              <div className="p-5 bg-zinc-950/60 flex items-center justify-end md:justify-center gap-3 md:min-w-[220px]">
                 <button
                   type="button"
-                  onClick={() => handleReview(req.id, 'REJECT')}
+                  onClick={() => openRejectModal(req)}
                   disabled={processingId !== null}
-                  className="px-3 py-2 text-xs font-medium text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-md transition-colors disabled:opacity-50 border border-transparent hover:border-rose-500/20 flex flex-col items-center"
+                  className="px-4 py-2.5 min-h-[44px] text-xs font-semibold text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 border border-rose-500/30 rounded-xl transition-colors disabled:opacity-50 inline-flex items-center gap-1.5"
                 >
-                  <XCircle className="w-4 h-4 mb-1 mx-auto" />
+                  <XCircle className="w-4 h-4" />
                   Reject
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleReview(req.id, 'APPROVE')}
+                  onClick={() => handleApprove(req.id)}
                   disabled={processingId !== null}
-                  className="px-4 py-2 text-xs font-medium bg-emerald-600 hover:bg-emerald-500 text-white rounded-md transition-colors disabled:opacity-50 shadow-sm flex flex-col items-center"
+                  className="px-5 py-2.5 min-h-[44px] text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl transition-colors disabled:opacity-50 shadow-sm inline-flex items-center gap-1.5"
                 >
-                  <CheckCircle className="w-4 h-4 mb-1" />
-                  Approve
+                  <CheckCircle className="w-4 h-4" />
+                  Approve Lead
                 </button>
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* In-App Rejection Modal */}
+      {rejectingRequest && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm overflow-y-auto">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 max-h-[90vh] flex flex-col my-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-zinc-800 shrink-0">
+              <div className="flex items-center space-x-2.5">
+                <div className="p-2 bg-rose-500/10 text-rose-400 rounded-lg border border-rose-500/20 shrink-0">
+                  <XCircle className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-white">Reject Assignment Request</h3>
+                  <p className="text-xs text-zinc-400">Provide formal feedback for the investigator</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setRejectingRequest(null)}
+                className="text-zinc-500 hover:text-zinc-300 p-2 min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-lg transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleConfirmReject} className="space-y-4 overflow-y-auto flex-1">
+              <div>
+                <p className="text-xs text-zinc-300">
+                  Rejecting assignment request for <span className="text-white font-medium">{rejectingRequest.investigator?.name}</span> on <span className="text-white font-medium">{rejectingRequest.case?.title}</span>.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-zinc-300 mb-1.5">
+                  Reason for Rejection <span className="text-rose-400">*</span>
+                </label>
+                <textarea
+                  value={rejectionReason}
+                  onChange={(e) => {
+                    setRejectionReason(e.target.value);
+                    if (rejectionError) setRejectionError(null);
+                  }}
+                  rows={3}
+                  placeholder="e.g. Lead already assigned to senior detective / case reassigned / jurisdictional mismatch..."
+                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-rose-500 transition-colors"
+                  autoFocus
+                />
+                {rejectionError && (
+                  <p className="text-xs text-rose-400 mt-1 flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    {rejectionError}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex items-center justify-end space-x-2 pt-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setRejectingRequest(null)}
+                  className="px-4 py-2.5 min-h-[44px] bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-xl text-xs font-medium transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={processingId !== null}
+                  className="px-5 py-2.5 min-h-[44px] bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-semibold transition-colors disabled:opacity-50 inline-flex items-center justify-center"
+                >
+                  Confirm Rejection
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>

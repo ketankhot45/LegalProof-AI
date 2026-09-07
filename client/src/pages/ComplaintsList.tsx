@@ -7,12 +7,13 @@ import {
   Search, 
   Filter, 
   RefreshCw, 
-  X,
-  AlertCircle,
-  Clock,
-  ArrowRight
+  X, 
+  AlertCircle, 
+  Clock, 
+  ArrowRight 
 } from 'lucide-react';
 import { StatusBadge } from '../components/StatusBadge';
+import { HashDisplay } from '../components/HashDisplay';
 
 export const ComplaintsList = () => {
   const { user } = useAuth();
@@ -237,10 +238,12 @@ export const ComplaintsList = () => {
           </div>
         ) : (
           <div>
-            <div className="px-6 py-3 border-b border-zinc-800 bg-zinc-950/40 text-xs text-zinc-500 flex justify-between items-center">
-              <span>Showing {filteredComplaints.length} of {complaints.length} complaints</span>
+            <div className="px-5 sm:px-6 py-3 border-b border-zinc-800 bg-zinc-950/40 text-xs text-zinc-500 flex justify-between items-center">
+              <span>Showing <strong className="text-zinc-300">{filteredComplaints.length}</strong> of {complaints.length} complaints</span>
             </div>
-            <div className="overflow-x-auto">
+
+            {/* Desktop Table View (Hidden on Mobile) */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left text-sm text-zinc-400">
                 <thead className="bg-zinc-950/70 text-[11px] uppercase tracking-wider text-zinc-500 border-b border-zinc-800 whitespace-nowrap">
                   <tr>
@@ -257,11 +260,13 @@ export const ComplaintsList = () => {
                     const action = getActionDetails(c);
                     return (
                       <tr key={c.id} className="hover:bg-zinc-800/40 transition-colors">
-                        <td className="px-6 py-4 max-w-[220px] sm:max-w-[320px]">
+                        <td className="px-6 py-4 max-w-[240px] lg:max-w-[320px]">
                           <Link to={`/complaints/${c.id}`} className="font-medium text-white hover:text-indigo-300 block truncate transition-colors">
                             {c.title}
                           </Link>
-                          <span className="text-[11px] text-zinc-500 font-mono truncate block mt-0.5">Ref: {c.id.substring(0, 8)}...</span>
+                          <div className="mt-1">
+                            <HashDisplay hash={c.id} truncate="short" size="xs" variant="inline" label="Ref" />
+                          </div>
                         </td>
                         <td className="px-6 py-4 text-xs whitespace-nowrap">
                           <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-zinc-800 text-zinc-300 border border-zinc-700/60">
@@ -283,7 +288,7 @@ export const ComplaintsList = () => {
                         <td className="px-6 py-4 text-right whitespace-nowrap">
                           <Link 
                             to={`/complaints/${c.id}`} 
-                            className={`inline-flex items-center text-xs px-3 py-1.5 rounded-lg border transition-colors ${action.style}`}
+                            className={`inline-flex items-center text-xs px-3 py-2 min-h-[36px] rounded-lg border transition-colors ${action.style}`}
                           >
                             <span>{action.label}</span>
                             <ArrowRight className="w-3 h-3 ml-1.5" />
@@ -294,6 +299,49 @@ export const ComplaintsList = () => {
                   })}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile Card List View (Visible on Mobile) */}
+            <div className="md:hidden divide-y divide-zinc-800">
+              {filteredComplaints.map((c: any) => {
+                const action = getActionDetails(c);
+                return (
+                  <div key={c.id} className="p-4 space-y-3 hover:bg-zinc-800/30 transition-colors">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <Link to={`/complaints/${c.id}`} className="font-semibold text-sm text-white hover:text-indigo-300 block truncate transition-colors">
+                          {c.title}
+                        </Link>
+                        <div className="mt-1">
+                          <HashDisplay hash={c.id} truncate="short" size="xs" variant="inline" label="Ref" />
+                        </div>
+                      </div>
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-zinc-800 text-zinc-300 border border-zinc-700/60 shrink-0">
+                        {c.category || 'General'}
+                      </span>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-400">
+                      <StatusBadge type="complaint" status={c.status} size="sm" />
+                      <span>•</span>
+                      <span>By {c.user?.name || 'Complainant'}</span>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-2 pt-2 border-t border-zinc-800/60 text-xs">
+                      <span className="text-zinc-500 text-[11px]">
+                        {new Date(c.createdAt).toLocaleDateString()}
+                      </span>
+                      <Link 
+                        to={`/complaints/${c.id}`} 
+                        className={`inline-flex items-center justify-center text-xs px-3.5 py-2 min-h-[40px] rounded-lg border transition-colors ${action.style}`}
+                      >
+                        <span>{action.label}</span>
+                        <ArrowRight className="w-3 h-3 ml-1.5" />
+                      </Link>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

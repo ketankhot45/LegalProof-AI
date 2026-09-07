@@ -186,14 +186,14 @@ export const AdminInvestigatorInviteModal: React.FC<Props> = ({ isOpen, onClose,
               <button
                 type="button"
                 onClick={handleReset}
-                className="px-4 py-2 text-xs font-medium text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 rounded-xl transition-colors"
+                className="px-4 py-2.5 min-h-[44px] text-xs font-medium text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 rounded-xl transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 rounded-xl transition-colors disabled:opacity-50 shadow-md flex items-center gap-1.5"
+                className="px-5 py-2.5 min-h-[44px] text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 rounded-xl transition-colors disabled:opacity-50 shadow-md flex items-center justify-center gap-1.5"
               >
                 <Mail className="w-3.5 h-3.5" />
                 {loading ? 'Dispatching...' : 'Dispatch Invitation'}
