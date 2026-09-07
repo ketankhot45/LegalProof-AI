@@ -31,6 +31,18 @@ export const CasesList = () => {
   const [quickFilter, setQuickFilter] = useState<QuickFilter>('ALL');
   const [refreshing, setRefreshing] = useState(false);
 
+  if (user?.role === 'COMPLAINANT') {
+    return (
+      <div className="p-8 text-center flex flex-col items-center">
+        <AlertCircle className="w-12 h-12 text-rose-500/50 mb-4" />
+        <h3 className="text-lg font-medium text-white mb-1">Access restricted</h3>
+        <p className="text-sm text-zinc-400 max-w-sm">
+          This section is available only to authorized legal personnel.
+        </p>
+      </div>
+    );
+  }
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {

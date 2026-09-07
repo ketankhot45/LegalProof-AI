@@ -24,6 +24,7 @@ import {
 import { EvidenceList } from '../components/EvidenceList';
 import { StatusBadge } from '../components/StatusBadge';
 import { useFeedback } from '../contexts/FeedbackContext';
+import { Breadcrumbs } from '../components/Breadcrumbs';
 
 export const CaseDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -236,21 +237,16 @@ export const CaseDetails = () => {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
+      <Breadcrumbs items={[{ label: 'Cases', href: '/cases' }, { label: caseData.title }]} />
+
       {/* Top Header & Status Control */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center space-x-4">
-          <Link 
-            to="/cases" 
-            className="p-2 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-400 hover:text-white transition-colors"
-            title="Return to cases list"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </Link>
           <div>
-            <div className="flex flex-wrap items-center gap-2.5">
+            <div className="flex flex-wrap items-center gap-2.5 mb-1">
               <h2 className="text-xl font-semibold text-white tracking-tight">Case Operations</h2>
               <StatusBadge type="case" status={caseData.status} size="md" />
-              <span className={`px-2 py-0.5 text-xs rounded border ${getPriorityBadge(caseData.priority)}`}>
+              <span className={`px-2 py-0.5 text-[10px] uppercase font-bold rounded border tracking-wide ${getPriorityBadge(caseData.priority)}`}>
                 {caseData.priority} Priority
               </span>
             </div>

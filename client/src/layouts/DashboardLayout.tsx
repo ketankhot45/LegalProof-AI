@@ -41,6 +41,47 @@ export const DashboardLayout = () => {
 
   const isComplainant = user.role === 'COMPLAINANT';
 
+  const baseInvestigatorNav = [
+    {
+      label: 'Dashboard',
+      path: '/dashboard',
+      icon: LayoutDashboard,
+    },
+    {
+      label: 'Complaints',
+      path: '/complaints',
+      icon: FileText,
+    },
+    {
+      label: 'Cases',
+      path: '/cases',
+      icon: Briefcase,
+    },
+    {
+      label: 'Evidence Vault',
+      path: '/evidence',
+      icon: FolderLock,
+    },
+    {
+      label: 'Public Verification',
+      path: '/verify',
+      icon: CheckCircle,
+    }
+  ];
+
+  const adminAdditions = [
+    {
+      label: 'Investigator Roster',
+      path: '/investigators',
+      icon: User,
+    },
+    {
+      label: 'Assignment Queue',
+      path: '/assignments',
+      icon: FileText, // Or a better icon
+    }
+  ];
+
   const navItems = isComplainant
     ? [
         {
@@ -64,37 +105,13 @@ export const DashboardLayout = () => {
           icon: CheckCircle,
         }
       ]
-    : [
-        {
-          label: 'Dashboard',
-          path: '/dashboard',
-          icon: LayoutDashboard,
-        },
-        {
-          label: 'Complaints',
-          path: '/complaints',
-          icon: FileText,
-        },
-        {
-          label: 'Cases',
-          path: '/cases',
-          icon: Briefcase,
-        },
-        {
-          label: 'Evidence Vault',
-          path: '/evidence',
-          icon: FolderLock,
-        },
-        {
-          label: 'Public Verification',
-          path: '/verify',
-          icon: CheckCircle,
-        }
-      ];
+    : user.role === 'ADMIN' ? [...baseInvestigatorNav, ...adminAdditions] : baseInvestigatorNav;
 
   const isActiveRoute = (path: string) => {
     if (path === '/dashboard') return location.pathname === '/dashboard';
     if (path === '/complaints/new') return location.pathname === '/complaints/new';
+    if (path === '/investigators') return location.pathname === '/investigators';
+    if (path === '/assignments') return location.pathname === '/assignments';
     if (path === '/complaints') {
       return location.pathname === '/complaints' || (location.pathname.startsWith('/complaints/') && location.pathname !== '/complaints/new');
     }

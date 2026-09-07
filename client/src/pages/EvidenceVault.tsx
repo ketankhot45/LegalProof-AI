@@ -11,7 +11,8 @@ import {
   ArrowRight, 
   Upload, 
   Briefcase,
-  X
+  X,
+  AlertCircle
 } from 'lucide-react';
 import { StatusBadge } from '../components/StatusBadge';
 
@@ -59,8 +60,16 @@ export const EvidenceVault = () => {
   const [blockchainFilter, setBlockchainFilter] = useState<string>('ALL');
 
   // Complainants are unauthorized
-  if (user && user.role === 'COMPLAINANT') {
-    return <Navigate to="/dashboard" replace />;
+  if (user?.role === 'COMPLAINANT') {
+    return (
+      <div className="p-8 text-center flex flex-col items-center">
+        <AlertCircle className="w-12 h-12 text-rose-500/50 mb-4" />
+        <h3 className="text-lg font-medium text-white mb-1">Access restricted</h3>
+        <p className="text-sm text-zinc-400 max-w-sm">
+          This section is available only to authorized legal personnel.
+        </p>
+      </div>
+    );
   }
 
   const fetchVaultData = async (isManual = false) => {

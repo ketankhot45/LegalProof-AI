@@ -19,6 +19,8 @@ import { EvidenceUpload } from './pages/EvidenceUpload';
 import { EvidenceDetails } from './pages/EvidenceDetails';
 import { EvidenceVault } from './pages/EvidenceVault';
 import { PublicVerify } from './pages/PublicVerify';
+import { InvestigatorRoster } from './pages/InvestigatorRoster';
+import { AdminAssignmentQueue } from './pages/AdminAssignmentQueue';
 
 export default function App() {
   return (
@@ -37,6 +39,8 @@ export default function App() {
           
           <Route element={<DashboardLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/investigators" element={<InvestigatorRoster />} />
+            <Route path="/assignments" element={<AdminAssignmentQueue />} />
             <Route path="/complaints" element={<ComplaintsList />} />
             <Route path="/complaints/new" element={<ComplaintNew />} />
             <Route path="/complaints/:id" element={<ComplaintDetails />} />

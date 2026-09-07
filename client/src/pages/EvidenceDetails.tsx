@@ -39,6 +39,7 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import { StatusBadge } from '../components/StatusBadge';
 import { useFeedback } from '../contexts/FeedbackContext';
+import { Breadcrumbs } from '../components/Breadcrumbs';
 
 interface VerifyResultState {
   status: 'SUCCESS' | 'HASH_MISMATCH' | 'FILE_MISSING' | 'UNAUTHORIZED' | 'SERVER_ERROR';
@@ -412,18 +413,11 @@ export const EvidenceDetails = () => {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 pb-12">
-      
+      <Breadcrumbs items={[{ label: 'Cases', href: '/cases' }, { label: evidence.case?.title || `Case ${evidence.caseId.substring(0,8)}`, href: `/cases/${evidence.caseId}` }, { label: evidence.fileName }]} />
+
       {/* 1. Header Navigation & Context Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800/80 pb-5">
         <div className="flex items-center space-x-3.5 min-w-0">
-          <button
-            type="button"
-            onClick={handleBack}
-            className="p-2 rounded-xl border border-zinc-800 bg-zinc-900/90 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors shrink-0"
-            title="Return to previous screen"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </button>
           <div className="min-w-0">
             <div className="flex items-center gap-2.5 flex-wrap">
               <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight truncate max-w-lg" title={evidence.fileName}>
@@ -433,12 +427,6 @@ export const EvidenceDetails = () => {
               <StatusBadge type="blockchain" status={evidence.blockchainStatus || 'NOT_ANCHORED'} size="sm" />
             </div>
             <p className="text-xs text-zinc-400 mt-1 flex items-center gap-2 flex-wrap">
-              <span>Case:</span>
-              <Link to={`/cases/${evidence.caseId}`} className="text-indigo-400 hover:text-indigo-300 font-medium hover:underline inline-flex items-center gap-1">
-                <Briefcase className="w-3 h-3 text-zinc-500" />
-                <span>{evidence.case?.title || evidence.caseTitle || `Case #${evidence.caseId.substring(0, 8)}`}</span>
-              </Link>
-              <span className="text-zinc-600">•</span>
               <span className="text-zinc-500 font-mono text-[11px]">UUID: {evidence.id}</span>
             </p>
           </div>

@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { StatusBadge } from '../components/StatusBadge';
 import { useFeedback } from '../contexts/FeedbackContext';
+import { Breadcrumbs } from '../components/Breadcrumbs';
 
 export const ComplaintDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -181,23 +182,27 @@ export const ComplaintDetails = () => {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
+      <Breadcrumbs items={[{ label: 'Complaints', href: '/complaints' }, { label: complaint.title }]} />
+
       {/* Top Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Link 
-            to="/complaints" 
-            className="p-2 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-400 hover:text-white transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </Link>
-          <div>
-            <div className="flex items-center space-x-3">
-              <h2 className="text-xl font-semibold text-white tracking-tight">Complaint Record</h2>
-              <StatusBadge type="complaint" status={complaint.status} size="md" />
-            </div>
-            <p className="text-xs text-zinc-500 font-mono mt-0.5">ID: {complaint.id}</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center space-x-3 mb-1">
+            <h2 className="text-xl font-semibold text-white tracking-tight">Complaint Record</h2>
+            <StatusBadge type="complaint" status={complaint.status} size="md" />
           </div>
+          <p className="text-xs text-zinc-500 font-mono">ID: {complaint.id}</p>
         </div>
+        
+        {complaint.caseId && isInvestigator && (
+          <Link
+            to={`/cases/${complaint.caseId}`}
+            className="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-medium transition-colors shadow-sm"
+          >
+            <Briefcase className="w-4 h-4 mr-2" />
+            Open Case Dossier
+          </Link>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
