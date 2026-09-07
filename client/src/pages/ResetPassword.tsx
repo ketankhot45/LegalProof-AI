@@ -1,3 +1,4 @@
+import { apiFetch } from "../lib/api";
 import React, { useState } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router';
 import { Shield, Lock, CheckCircle2, AlertCircle, ArrowRight } from 'lucide-react';
@@ -35,7 +36,7 @@ export const ResetPassword = () => {
     setLoading(true);
 
     try {
-      const res = await fetch('/api/v1/auth/reset-password', {
+      const { data } = await apiFetch('/api/v1/auth/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -44,10 +45,7 @@ export const ResetPassword = () => {
         }),
       });
 
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Password reset failed. The link may have expired.');
-      }
+      
 
       setSuccess(true);
     } catch (err: any) {

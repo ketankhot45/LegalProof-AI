@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router';
 import { Shield, Mail, CheckCircle2, ArrowRight } from 'lucide-react';
+import { apiFetch } from '../lib/api';
 
 export const Register = () => {
   const [name, setName] = useState('');
@@ -19,17 +20,14 @@ export const Register = () => {
     setLoading(true);
 
     try {
-      const res = await fetch('/api/v1/auth/register', {
+      const { data } = await apiFetch('/api/v1/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, password }),
       });
 
-      const data = await res.json();
       
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to register');
-      }
+      
 
       setRegistered(true);
       setRegisteredEmail(email);
@@ -46,12 +44,12 @@ export const Register = () => {
     setResendMessage('');
 
     try {
-      const res = await fetch('/api/v1/auth/resend-verification', {
+      const { data } = await apiFetch('/api/v1/auth/resend-verification', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: registeredEmail }),
       });
-      const data = await res.json();
+      
       setResendStatus('success');
       setResendMessage(data.message || 'Verification link resent.');
     } catch (err) {

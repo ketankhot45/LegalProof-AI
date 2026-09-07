@@ -1,3 +1,4 @@
+import { apiFetch } from "../lib/api";
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router';
 import { Shield, CheckCircle2, AlertCircle, RefreshCw, Mail, ArrowRight } from 'lucide-react';
@@ -21,16 +22,13 @@ export const VerifyEmail = () => {
 
     const performVerification = async () => {
       try {
-        const res = await fetch('/api/v1/auth/verify-email', {
+        const { data } = await apiFetch('/api/v1/auth/verify-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ token }),
         });
 
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(data.error || 'Verification failed. The token may be expired or already used.');
-        }
+        
 
         setStatus('success');
         setMessage(data.message || 'Your email has been verified successfully.');
@@ -51,12 +49,12 @@ export const VerifyEmail = () => {
     setResendMessage('');
 
     try {
-      const res = await fetch('/api/v1/auth/resend-verification', {
+      const { data } = await apiFetch('/api/v1/auth/resend-verification', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: resendEmail }),
       });
-      const data = await res.json();
+      
       setResendMessage(data.message || 'If an unverified account exists, a link has been dispatched.');
     } catch (err: any) {
       setResendMessage('Failed to request verification link. Please try again later.');

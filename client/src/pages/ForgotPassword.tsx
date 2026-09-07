@@ -1,3 +1,4 @@
+import { apiFetch } from "../lib/api";
 import React, { useState } from 'react';
 import { Link } from 'react-router';
 import { Shield, KeyRound, ArrowLeft, Mail, CheckCircle2 } from 'lucide-react';
@@ -16,12 +17,12 @@ export const ForgotPassword = () => {
     setMessage('');
 
     try {
-      const res = await fetch('/api/v1/auth/forgot-password', {
+      const { data } = await apiFetch('/api/v1/auth/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       });
-      const data = await res.json();
+      
       setSubmitted(true);
       setMessage(data.message || 'If an account exists with this email address, password reset instructions have been sent.');
     } catch (err) {

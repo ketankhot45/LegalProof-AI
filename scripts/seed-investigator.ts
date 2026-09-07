@@ -8,7 +8,7 @@ if (process.env.NODE_ENV === 'production') {
 
 const databaseUrl = process.env.DATABASE_URL || process.env.LOCAL_DEMO_DATABASE_URL;
 const email = (process.env.LOCAL_INVESTIGATOR_EMAIL || 'investigator@legalproof.test').toLowerCase().trim();
-const password = process.env.LOCAL_INVESTIGATOR_PASSWORD || 'InvestigatorPass123!';
+const password = process.env.LOCAL_INVESTIGATOR_PASSWORD;
 const name = process.env.LOCAL_INVESTIGATOR_NAME || 'Lead Forensic Investigator';
 
 if (!databaseUrl) {
@@ -20,7 +20,7 @@ if (!email) {
 }
 
 if (!password || password.length < 8) {
-  throw new Error('LOCAL_INVESTIGATOR_PASSWORD is required and must be at least 8 characters.');
+  throw new Error('LOCAL_INVESTIGATOR_PASSWORD environment variable is required and must be at least 8 characters.');
 }
 
 const prisma = new PrismaClient({

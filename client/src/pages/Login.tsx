@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { useAuth } from '../contexts/AuthContext';
 import { Shield, User, Briefcase, KeyRound, AlertCircle, CheckCircle2, Mail, RefreshCw } from 'lucide-react';
+import { apiFetch } from '../lib/api';
 
 type RoleType = 'COMPLAINANT' | 'INVESTIGATOR' | 'ADMIN';
 
@@ -48,7 +49,7 @@ export const Login = () => {
     setLoading(true);
 
     try {
-      const res = await fetch('/api/v1/auth/login', {
+      const { data } = await apiFetch('/api/v1/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -58,18 +59,12 @@ export const Login = () => {
         }),
       });
 
-      const data = await res.json();
-      
-      if (!res.ok) {
-        if (data.requiresVerification) {
-          setRequiresVerification(true);
-        }
-        throw new Error(data.error || 'Authentication failed');
-      }
-
       login(data.token, data.user);
       navigate('/dashboard');
     } catch (err: any) {
+      if (err.data?.requiresVerification) {
+        setRequiresVerification(true);
+      }
       setError(err.message || 'Unable to sign in. Please verify your credentials and selected portal.');
     } finally {
       setLoading(false);
@@ -82,17 +77,16 @@ export const Login = () => {
     setResendMessage('');
 
     try {
-      const res = await fetch('/api/v1/auth/resend-verification', {
+      const { data } = await apiFetch('/api/v1/auth/resend-verification', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       });
-      const data = await res.json();
       setResendStatus('success');
       setResendMessage(data.message || 'Verification link sent. Please check your inbox.');
-    } catch (err) {
+    } catch (err: any) {
       setResendStatus('error');
-      setResendMessage('Failed to resend verification email. Please try again later.');
+      setResendMessage(err.message || 'Failed to resend verification email. Please try again later.');
     }
   };
 

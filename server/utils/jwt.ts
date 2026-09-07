@@ -3,13 +3,10 @@ import jwt from 'jsonwebtoken';
 
 const getJwtSecret = (): string => {
   const secret = process.env.JWT_SECRET;
-  if (!secret) {
-    if (process.env.NODE_ENV === 'production') {
-      throw new Error('FATAL: JWT_SECRET environment variable is required in production.');
-    }
-    return 'dev-jwt-secret-legalproof-2026';
+  if (!secret || secret.trim().length === 0) {
+    throw new Error('FATAL: JWT_SECRET environment variable is required to sign and verify security tokens.');
   }
-  return secret;
+  return secret.trim();
 };
 
 export interface JWTPayload {

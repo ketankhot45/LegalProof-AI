@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { apiFetch } from '../lib/api';
 
 export type User = {
   id: string;
@@ -25,14 +26,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     if (token) {
-      fetch('/api/v1/auth/me', {
+      apiFetch('/api/v1/auth/me', {
         headers: { Authorization: `Bearer ${token}` }
       })
-      .then(res => {
-        if (!res.ok) throw new Error('Session invalid');
-        return res.json();
-      })
-      .then(data => {
+      .then(({ data }) => {
         if (data.user) {
           setUser(data.user);
         } else {
@@ -64,7 +61,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     if (currentToken) {
       try {
-        await fetch('/api/v1/auth/logout', {
+        await apiFetch('/api/v1/auth/logout', {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${currentToken}`,

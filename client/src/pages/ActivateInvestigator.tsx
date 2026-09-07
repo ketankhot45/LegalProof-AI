@@ -1,3 +1,4 @@
+import { apiFetch } from "../lib/api";
 import React, { useState } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router';
 import { useAuth } from '../contexts/AuthContext';
@@ -36,7 +37,7 @@ export const ActivateInvestigator = () => {
     setLoading(true);
 
     try {
-      const res = await fetch('/api/v1/auth/investigators/activate', {
+      const { data } = await apiFetch('/api/v1/auth/investigators/activate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -45,10 +46,7 @@ export const ActivateInvestigator = () => {
         }),
       });
 
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Activation failed. Invitation token may have expired or already been used.');
-      }
+      
 
       login(data.token, data.user);
       navigate('/dashboard');
