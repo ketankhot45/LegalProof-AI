@@ -13,6 +13,7 @@ import {
   Briefcase,
   X
 } from 'lucide-react';
+import { StatusBadge } from '../components/StatusBadge';
 
 interface EvidenceItem {
   id: string;
@@ -444,40 +445,12 @@ export const EvidenceVault = () => {
 
                       {/* Integrity Status */}
                       <td className="px-5 py-3.5 whitespace-nowrap">
-                        {isVerified ? (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1.5"></span>
-                            Integrity Verified
-                          </span>
-                        ) : isFailed ? (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-red-500/10 text-red-400 border border-red-500/20">
-                            <span className="w-1.5 h-1.5 rounded-full bg-red-400 mr-1.5"></span>
-                            Integrity Failed
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-zinc-800 text-zinc-400 border border-zinc-700">
-                            Verification Pending
-                          </span>
-                        )}
+                        <StatusBadge type="evidence" status={item.status} size="sm" />
                       </td>
 
                       {/* Blockchain Status */}
                       <td className="px-5 py-3.5 whitespace-nowrap">
-                        {isAnchored ? (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-purple-500/10 text-purple-300 border border-purple-500/20">
-                            <span className="w-1.5 h-1.5 rounded-full bg-purple-400 mr-1.5"></span>
-                            Polygon Anchored
-                          </span>
-                        ) : isAnchoring ? (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                            <RefreshCw className="w-2.5 h-2.5 mr-1 animate-spin" />
-                            Mempool Pending
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-zinc-800/80 text-zinc-400 border border-zinc-700/80">
-                            Not Anchored
-                          </span>
-                        )}
+                        <StatusBadge type="blockchain" status={item.blockchainStatus || 'NOT_ANCHORED'} size="sm" />
                       </td>
 
                       {/* Upload Date & Uploader */}

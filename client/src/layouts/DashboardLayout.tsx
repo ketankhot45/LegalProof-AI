@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Navigate, Link, useLocation, Outlet } from 'react-router';
 import { 
-  Shield, 
   FileText, 
   User, 
   LogOut, 
@@ -17,6 +16,8 @@ import {
   PlusCircle
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { Logo } from '../components/Logo';
+import { Footer } from '../components/Footer';
 
 export const DashboardLayout = () => {
   const { user, logout, loading } = useAuth();
@@ -107,10 +108,7 @@ export const DashboardLayout = () => {
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col md:flex-row">
       {/* Mobile Top Header */}
       <div className="md:hidden flex items-center justify-between px-4 h-16 bg-zinc-950 border-b border-zinc-800 z-30">
-        <div className="flex items-center space-x-2.5">
-          <Shield className="w-6 h-6 text-indigo-500" />
-          <span className="font-semibold text-base tracking-tight text-white">LegalProof AI</span>
-        </div>
+        <Logo size="sm" />
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
           className="p-2 text-zinc-400 hover:text-white rounded-md bg-zinc-900 border border-zinc-800"
@@ -128,10 +126,7 @@ export const DashboardLayout = () => {
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between pb-4 border-b border-zinc-800">
-              <div className="flex items-center space-x-2.5">
-                <Shield className="w-6 h-6 text-indigo-500" />
-                <span className="font-semibold text-base tracking-tight text-white">LegalProof AI</span>
-              </div>
+              <Logo size="sm" />
               <button onClick={() => setMobileOpen(false)} className="p-1 text-zinc-400 hover:text-white">
                 <X className="w-5 h-5" />
               </button>
@@ -185,8 +180,7 @@ export const DashboardLayout = () => {
       {/* Desktop Permanent Sidebar */}
       <aside className="hidden md:flex w-64 border-r border-zinc-800 bg-zinc-950 flex-col shrink-0 sticky top-0 h-screen">
         <div className="h-16 flex items-center px-6 border-b border-zinc-800">
-          <Shield className="w-6 h-6 text-indigo-500 mr-3" />
-          <span className="font-semibold text-lg tracking-tight text-white">LegalProof AI</span>
+          <Logo size="md" />
         </div>
         
         <nav className="flex-1 px-3 py-6 space-y-1.5">
@@ -239,13 +233,19 @@ export const DashboardLayout = () => {
       <main className="flex-1 flex flex-col min-w-0">
         {/* Top Header */}
         <header className="h-16 border-b border-zinc-800 flex items-center justify-between px-6 lg:px-8 bg-zinc-950/80 backdrop-blur-sm sticky top-0 z-20">
-          <div className="flex items-center space-x-2">
+          <div 
+            className="flex items-center space-x-2"
+            title="Network: Polygon Amoy Testnet • Chain ID: 80002"
+          >
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span className="text-xs font-medium text-zinc-400">Polygon Amoy Testnet • Active</span>
+            <span className="text-xs font-medium text-zinc-400">Blockchain • Active</span>
           </div>
           <div className="flex items-center space-x-4">
-            <span className="text-xs font-mono text-zinc-400 hidden sm:inline-block">
-              SHA-256 Verified Storage
+            <span 
+              className="text-xs text-zinc-400 hidden sm:inline-block"
+              title="Integrity method: SHA-256 cryptographic digest verification"
+            >
+              Evidence Integrity • Verified
             </span>
           </div>
         </header>
@@ -254,6 +254,9 @@ export const DashboardLayout = () => {
         <div className="flex-1 p-6 lg:p-8 overflow-auto">
           <Outlet />
         </div>
+
+        {/* Global Footer */}
+        <Footer variant="app" />
       </main>
     </div>
   );

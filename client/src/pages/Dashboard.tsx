@@ -22,6 +22,7 @@ import {
   UserPlus
 } from 'lucide-react';
 import { AdminInvestigatorInviteModal } from '../components/AdminInvestigatorInviteModal';
+import { StatusBadge } from '../components/StatusBadge';
 
 export const Dashboard = () => {
   const { user } = useAuth();
@@ -55,21 +56,6 @@ export const Dashboard = () => {
   useEffect(() => {
     fetchStats();
   }, []);
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'DRAFT': return 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20';
-      case 'SUBMITTED': return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
-      case 'UNDER_REVIEW': return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
-      case 'ESCALATED': return 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20';
-      case 'REJECTED': return 'bg-red-500/10 text-red-400 border-red-500/20';
-      case 'OPENED': return 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20';
-      case 'ASSIGNED': return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
-      case 'ACTIVE_INVESTIGATION': return 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20';
-      case 'CLOSED': return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
-      default: return 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20';
-    }
-  };
 
   const getActionBadgeColor = (action: string) => {
     switch (action) {
@@ -310,9 +296,7 @@ export const Dashboard = () => {
                         <td className="px-6 py-3.5 font-medium text-zinc-200 max-w-[200px] truncate">{c.title}</td>
                         <td className="px-6 py-3.5 text-xs text-zinc-400 whitespace-nowrap">{c.category || 'General'}</td>
                         <td className="px-6 py-3.5 whitespace-nowrap">
-                          <span className={`px-2.5 py-0.5 text-xs rounded-full border font-medium ${getStatusColor(c.status)}`}>
-                            {c.status.replace('_', ' ')}
-                          </span>
+                          <StatusBadge type="complaint" status={c.status} size="sm" />
                         </td>
                         <td className="px-6 py-3.5 text-xs whitespace-nowrap">{new Date(c.createdAt).toLocaleDateString()}</td>
                         <td className="px-6 py-3.5 text-right whitespace-nowrap">
@@ -480,9 +464,7 @@ export const Dashboard = () => {
                         </div>
                       </div>
                       <div className="flex items-center space-x-3">
-                        <span className={`px-2.5 py-0.5 text-xs rounded-full border font-medium ${getStatusColor(cs.status)}`}>
-                          {cs.status.replace('_', ' ')}
-                        </span>
+                        <StatusBadge type="case" status={cs.status} size="sm" />
                         <Link to={`/cases/${cs.id}`} className="text-xs text-zinc-400 hover:text-white">
                           <ArrowRight className="w-4 h-4" />
                         </Link>

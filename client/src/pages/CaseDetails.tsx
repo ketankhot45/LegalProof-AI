@@ -22,6 +22,7 @@ import {
   FileWarning
 } from 'lucide-react';
 import { EvidenceList } from '../components/EvidenceList';
+import { StatusBadge } from '../components/StatusBadge';
 
 export const CaseDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -250,9 +251,7 @@ export const CaseDetails = () => {
           <div>
             <div className="flex flex-wrap items-center gap-2.5">
               <h2 className="text-xl font-semibold text-white tracking-tight">Case Operations</h2>
-              <span className={`px-2.5 py-0.5 text-xs rounded-full border ${getStatusBadge(caseData.status)}`}>
-                {caseData.status.replace('_', ' ')}
-              </span>
+              <StatusBadge type="case" status={caseData.status} size="md" />
               <span className={`px-2 py-0.5 text-xs rounded border ${getPriorityBadge(caseData.priority)}`}>
                 {caseData.priority} Priority
               </span>

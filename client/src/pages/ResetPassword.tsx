@@ -1,7 +1,9 @@
 import { apiFetch } from "../lib/api";
 import React, { useState } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router';
-import { Shield, Lock, CheckCircle2, AlertCircle, ArrowRight } from 'lucide-react';
+import { Lock, CheckCircle2, AlertCircle, ArrowRight } from 'lucide-react';
+import { Logo } from '../components/Logo';
+import { Footer } from '../components/Footer';
 
 export const ResetPassword = () => {
   const [searchParams] = useSearchParams();
@@ -56,21 +58,14 @@ export const ResetPassword = () => {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md flex flex-col items-center">
-        <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl mb-3 shadow-inner">
-          <Shield className="w-10 h-10 text-indigo-500" />
+    <div className="min-h-screen bg-zinc-950 flex flex-col justify-between">
+      <div className="flex-1 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="sm:mx-auto sm:w-full sm:max-w-md flex flex-col items-center">
+          <Logo size="lg" showSubtitle subtitleText="Establish Account Password" />
         </div>
-        <h2 className="text-2xl font-bold tracking-tight text-white text-center">
-          Set New Password
-        </h2>
-        <p className="mt-1 text-sm text-zinc-400 text-center">
-          Establish new credentials for your LegalProof AI account
-        </p>
-      </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-zinc-900 py-8 px-6 shadow-xl sm:rounded-xl border border-zinc-800">
+        <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+          <div className="bg-zinc-900 py-8 px-6 shadow-xl sm:rounded-xl border border-zinc-800">
           {success ? (
             <div className="text-center py-4 space-y-4">
               <div className="w-12 h-12 bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center justify-center mx-auto text-emerald-400">
@@ -156,6 +151,8 @@ export const ResetPassword = () => {
           )}
         </div>
       </div>
+      </div>
+      <Footer variant="public" />
     </div>
   );
 };

@@ -8,15 +8,17 @@ import {
   XCircle, 
   ExternalLink, 
   ArrowLeft, 
-  RefreshCw,
-  Copy,
-  Check,
-  Search,
-  Lock,
-  Cpu,
-  AlertCircle
+  RefreshCw, 
+  Copy, 
+  Check, 
+  Search, 
+  Lock, 
+  Cpu, 
+  AlertCircle 
 } from 'lucide-react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
+import { Logo } from '../components/Logo';
+import { Footer } from '../components/Footer';
 
 export const PublicVerify = () => {
   const navigate = useNavigate();
@@ -187,18 +189,10 @@ export const PublicVerify = () => {
       <header className="border-b border-zinc-800/80 bg-zinc-900/60 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="bg-indigo-600/20 p-2 rounded-lg border border-indigo-500/30 text-indigo-400">
-              <ShieldCheck className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-base sm:text-lg text-white tracking-tight">LegalProof AI</span>
-                <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700 hidden sm:inline-block">
-                  Public Verification Portal
-                </span>
-              </div>
-              <p className="text-[11px] text-zinc-500 leading-none hidden sm:block">Polygon Amoy Blockchain Evidence Verifier</p>
-            </div>
+            <Logo size="md" />
+            <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-zinc-850 text-zinc-400 border border-zinc-750 hidden sm:inline-block">
+              Public Verification Portal
+            </span>
           </div>
 
           <div className="flex items-center space-x-2 sm:space-x-3">
@@ -226,9 +220,12 @@ export const PublicVerify = () => {
             <span>Back</span>
           </button>
 
-          <div className="flex items-center gap-1.5 text-xs text-zinc-500 bg-zinc-900/60 border border-zinc-800/60 px-2.5 py-1 rounded-md">
+          <div 
+            className="flex items-center gap-1.5 text-xs text-zinc-400 bg-zinc-900/60 border border-zinc-800/60 px-2.5 py-1 rounded-md"
+            title="Network: Polygon Amoy Testnet • Chain ID: 80002"
+          >
             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-            <span>Polygon Amoy (Chain ID 80002)</span>
+            <span>Blockchain • Active</span>
           </div>
         </div>
 
@@ -659,12 +656,7 @@ export const PublicVerify = () => {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-zinc-800/80 py-6 text-center text-xs text-zinc-500 bg-zinc-950">
-        <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>LegalProof AI • Immutable Evidence Verification System</span>
-          <span className="text-zinc-600 font-mono text-[11px]">Polygon Amoy Registry • Chain ID: 80002</span>
-        </div>
-      </footer>
+      <Footer variant="public" />
     </div>
   );
 };

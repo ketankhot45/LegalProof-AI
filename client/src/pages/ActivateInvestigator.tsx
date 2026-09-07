@@ -2,7 +2,9 @@ import { apiFetch } from "../lib/api";
 import React, { useState } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router';
 import { useAuth } from '../contexts/AuthContext';
-import { Shield, Briefcase, Lock, AlertCircle, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Briefcase, Lock, AlertCircle, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Logo } from '../components/Logo';
+import { Footer } from '../components/Footer';
 
 export const ActivateInvestigator = () => {
   const [searchParams] = useSearchParams();
@@ -58,24 +60,20 @@ export const ActivateInvestigator = () => {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md flex flex-col items-center">
-        <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl mb-3 shadow-inner">
-          <Briefcase className="w-10 h-10 text-indigo-400" />
+    <div className="min-h-screen bg-zinc-950 flex flex-col justify-between">
+      <div className="flex-1 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="sm:mx-auto sm:w-full sm:max-w-md flex flex-col items-center">
+          <Logo size="lg" showSubtitle subtitleText="Authorized Forensic Personnel Onboarding" />
+          <h2 className="text-xl font-bold tracking-tight text-white text-center mt-4">
+            Investigator Account Activation
+          </h2>
+          <p className="mt-1 text-xs text-zinc-400 text-center">
+            Establish your master password to access the forensic custody workspace
+          </p>
         </div>
-        <div className="inline-block bg-indigo-950/80 border border-indigo-700/50 text-indigo-300 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-wider mb-2">
-          Authorized Personnel Onboarding
-        </div>
-        <h2 className="text-2xl font-bold tracking-tight text-white text-center">
-          Forensic Investigator Activation
-        </h2>
-        <p className="mt-1 text-sm text-zinc-400 text-center">
-          Establish your master password to access the forensic custody workspace
-        </p>
-      </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-zinc-900 py-8 px-6 shadow-xl sm:rounded-xl border border-zinc-800">
+        <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-md">
+          <div className="bg-zinc-900 py-8 px-6 shadow-xl sm:rounded-xl border border-zinc-800">
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
               <div className="flex items-start gap-2.5 p-3.5 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-xs">
@@ -140,6 +138,8 @@ export const ActivateInvestigator = () => {
           </form>
         </div>
       </div>
+      </div>
+      <Footer variant="public" />
     </div>
   );
 };

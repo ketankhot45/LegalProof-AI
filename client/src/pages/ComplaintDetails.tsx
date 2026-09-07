@@ -20,6 +20,7 @@ import {
   Shield,
   Info
 } from 'lucide-react';
+import { StatusBadge } from '../components/StatusBadge';
 
 export const ComplaintDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -147,17 +148,6 @@ export const ComplaintDetails = () => {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'DRAFT': return 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20';
-      case 'SUBMITTED': return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
-      case 'UNDER_REVIEW': return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
-      case 'ESCALATED': return 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20';
-      case 'REJECTED': return 'bg-red-500/10 text-red-400 border-red-500/20';
-      default: return 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20';
-    }
-  };
-
   if (loading) {
     return (
       <div className="max-w-4xl mx-auto py-12 flex flex-col items-center justify-center space-y-3">
@@ -202,18 +192,7 @@ export const ComplaintDetails = () => {
           <div>
             <div className="flex items-center space-x-3">
               <h2 className="text-xl font-semibold text-white tracking-tight">Complaint Record</h2>
-              <span className={`px-2.5 py-0.5 text-xs rounded-full border font-medium ${getStatusColor(complaint.status)}`}>
-                {complaint.status.replace('_', ' ')}
-              </span>
-              {isInvestigator && complaint.status === 'ESCALATED' && (complaint.case?.id || complaint.caseId) && (
-                <Link
-                  to={`/cases/${complaint.case?.id || complaint.caseId}`}
-                  className="inline-flex items-center px-2.5 py-0.5 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 rounded-full text-xs font-medium transition-colors"
-                >
-                  <Briefcase className="w-3 h-3 mr-1" />
-                  View Linked Case →
-                </Link>
-              )}
+              <StatusBadge type="complaint" status={complaint.status} size="md" />
             </div>
             <p className="text-xs text-zinc-500 font-mono mt-0.5">ID: {complaint.id}</p>
           </div>

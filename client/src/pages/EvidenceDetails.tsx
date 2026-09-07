@@ -37,6 +37,7 @@ import {
   Briefcase
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { StatusBadge } from '../components/StatusBadge';
 
 interface VerifyResultState {
   status: 'SUCCESS' | 'HASH_MISMATCH' | 'FILE_MISSING' | 'UNAUTHORIZED' | 'SERVER_ERROR';
@@ -436,20 +437,8 @@ export const EvidenceDetails = () => {
               <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight truncate max-w-lg" title={evidence.fileName}>
                 {evidence.fileName}
               </h2>
-              <span className={`text-[11px] font-semibold uppercase px-2.5 py-0.5 rounded-md border ${
-                evidence.status === 'VERIFIED' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' :
-                evidence.status === 'INTEGRITY_FAILED' ? 'bg-red-500/10 text-red-400 border-red-500/30' :
-                'bg-zinc-800 text-zinc-400 border-zinc-700'
-              }`}>
-                {evidence.status === 'VERIFIED' ? 'Integrity Verified' :
-                 evidence.status === 'INTEGRITY_FAILED' ? 'Integrity Failed' :
-                 evidence.status ? evidence.status.replace('_', ' ') : 'Verification Pending'}
-              </span>
-              {evidence.blockchainStatus === 'ANCHORED' && (
-                <span className="text-[11px] font-semibold uppercase px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-300 border border-purple-500/30 inline-flex items-center gap-1">
-                  <Lock className="w-3 h-3 text-purple-400" /> Polygon Anchored
-                </span>
-              )}
+              <StatusBadge type="evidence" status={evidence.status} size="sm" />
+              <StatusBadge type="blockchain" status={evidence.blockchainStatus || 'NOT_ANCHORED'} size="sm" />
             </div>
             <p className="text-xs text-zinc-400 mt-1 flex items-center gap-2 flex-wrap">
               <span>Case:</span>

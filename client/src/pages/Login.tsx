@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { useAuth } from '../contexts/AuthContext';
-import { Shield, User, Briefcase, KeyRound, AlertCircle, CheckCircle2, Mail, RefreshCw } from 'lucide-react';
+import { User, Briefcase, KeyRound, AlertCircle, CheckCircle2, Mail, RefreshCw } from 'lucide-react';
 import { apiFetch } from '../lib/api';
+import { Logo } from '../components/Logo';
+import { Footer } from '../components/Footer';
 
 type RoleType = 'COMPLAINANT' | 'INVESTIGATOR' | 'ADMIN';
 
@@ -117,21 +119,14 @@ export const Login = () => {
   const activeMeta = roleMeta[activeRole];
 
   return (
-    <div className="min-h-screen bg-zinc-950 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md flex flex-col items-center">
-        <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl mb-3 shadow-inner">
-          <Shield className="w-10 h-10 text-indigo-500" />
+    <div className="min-h-screen bg-zinc-950 flex flex-col justify-between">
+      <div className="flex-1 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="sm:mx-auto sm:w-full sm:max-w-md flex flex-col items-center">
+          <Logo size="lg" showSubtitle subtitleText="Digital Forensics & Integrity Verification" />
         </div>
-        <h2 className="text-center text-2xl font-bold tracking-tight text-white">
-          LegalProof AI
-        </h2>
-        <p className="mt-1 text-center text-xs text-zinc-400">
-          Decentralized Digital Forensics & Integrity Verification
-        </p>
-      </div>
 
-      <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-zinc-900 shadow-2xl rounded-2xl border border-zinc-800 p-6 sm:p-8 space-y-6">
+        <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+          <div className="bg-zinc-900 shadow-2xl rounded-2xl border border-zinc-800 p-6 sm:p-8 space-y-6">
           {/* Role Portal Selector */}
           <div>
             <label className="block text-[11px] font-semibold uppercase tracking-wider text-zinc-400 mb-2">
@@ -287,6 +282,8 @@ export const Login = () => {
           </div>
         </div>
       </div>
+      </div>
+      <Footer variant="public" />
     </div>
   );
 };

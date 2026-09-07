@@ -14,6 +14,7 @@ import {
   Layers,
   CheckCircle2
 } from 'lucide-react';
+import { StatusBadge } from '../components/StatusBadge';
 
 type QuickFilter = 'ALL' | 'ASSIGNED_TO_ME' | 'UNASSIGNED';
 
@@ -390,9 +391,7 @@ export const CasesList = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2.5 py-0.5 text-xs rounded-full border font-medium ${getStatusColor(c.status)}`}>
-                          {c.status.replace('_', ' ')}
-                        </span>
+                        <StatusBadge type="case" status={c.status} size="sm" />
                       </td>
                       <td className="px-6 py-4 text-xs text-zinc-300 whitespace-nowrap">
                         {c.investigator ? (

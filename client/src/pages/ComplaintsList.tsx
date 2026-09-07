@@ -12,6 +12,7 @@ import {
   Clock,
   ArrowRight
 } from 'lucide-react';
+import { StatusBadge } from '../components/StatusBadge';
 
 export const ComplaintsList = () => {
   const { user } = useAuth();
@@ -47,17 +48,6 @@ export const ComplaintsList = () => {
   useEffect(() => {
     fetchComplaints();
   }, []);
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'DRAFT': return 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20';
-      case 'SUBMITTED': return 'bg-blue-500/10 text-blue-400 border-blue-500/30 font-semibold';
-      case 'UNDER_REVIEW': return 'bg-amber-500/10 text-amber-400 border-amber-500/30 font-semibold';
-      case 'ESCALATED': return 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30 font-semibold';
-      case 'REJECTED': return 'bg-red-500/10 text-red-400 border-red-500/30 font-semibold';
-      default: return 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20';
-    }
-  };
 
   const getActionDetails = (complaint: any) => {
     if (user?.role === 'COMPLAINANT') {
@@ -181,7 +171,6 @@ export const ComplaintsList = () => {
               <option value="UNDER_REVIEW">Under Review</option>
               <option value="ESCALATED">Escalated</option>
               <option value="REJECTED">Rejected</option>
-              <option value="DRAFT">Draft</option>
             </select>
           </div>
 
@@ -283,9 +272,7 @@ export const ComplaintsList = () => {
                           {c.user?.name || 'Unknown'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2.5 py-0.5 text-xs rounded-full border ${getStatusColor(c.status)}`}>
-                            {c.status.replace('_', ' ')}
-                          </span>
+                          <StatusBadge type="complaint" status={c.status} size="sm" />
                         </td>
                         <td className="px-6 py-4 text-xs text-zinc-400 whitespace-nowrap">
                           <div>{new Date(c.createdAt).toLocaleDateString()}</div>

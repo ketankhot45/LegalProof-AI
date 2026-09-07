@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router';
-import { Shield, Mail, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Mail, CheckCircle2, ArrowRight } from 'lucide-react';
 import { apiFetch } from '../lib/api';
+import { Logo } from '../components/Logo';
+import { Footer } from '../components/Footer';
 
 export const Register = () => {
   const [name, setName] = useState('');
@@ -59,21 +61,14 @@ export const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md flex flex-col items-center">
-        <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl mb-3 shadow-inner">
-          <Shield className="w-10 h-10 text-indigo-500" />
+    <div className="min-h-screen bg-zinc-950 flex flex-col justify-between">
+      <div className="flex-1 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="sm:mx-auto sm:w-full sm:max-w-md flex flex-col items-center">
+          <Logo size="lg" showSubtitle subtitleText="Citizen Public Intake & Incident Reporting Portal" />
         </div>
-        <h2 className="text-center text-3xl font-bold tracking-tight text-white">
-          Join LegalProof AI
-        </h2>
-        <p className="mt-1 text-center text-xs text-zinc-400">
-          Citizen Public Intake & Incident Reporting Portal
-        </p>
-      </div>
 
-      <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-zinc-900 shadow-2xl rounded-2xl border border-zinc-800 p-6 sm:p-8">
+        <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+          <div className="bg-zinc-900 shadow-2xl rounded-2xl border border-zinc-800 p-6 sm:p-8">
           {registered ? (
             <div className="text-center py-4 space-y-4">
               <div className="w-12 h-12 bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center justify-center mx-auto text-emerald-400">
@@ -181,6 +176,8 @@ export const Register = () => {
           )}
         </div>
       </div>
+      </div>
+      <Footer variant="public" />
     </div>
   );
 };

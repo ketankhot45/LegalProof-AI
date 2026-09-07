@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { File, Upload, Lock, ShieldAlert, ShieldCheck, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router';
 import { useAuth } from '../contexts/AuthContext';
+import { StatusBadge } from './StatusBadge';
 
 export const EvidenceList = ({ caseId, isAssignedInvestigator }: { caseId: string, isAssignedInvestigator: boolean }) => {
   const [evidence, setEvidence] = useState<any[]>([]);
@@ -104,9 +105,7 @@ export const EvidenceList = ({ caseId, isAssignedInvestigator }: { caseId: strin
                     <span>•</span>
                     <span>Uploaded by {item.uploadedBy?.name || 'Investigator'}</span>
                     <span>•</span>
-                    <span className={`px-2 py-0.2 rounded-full border text-[10px] font-medium ${getStatusBadge(item.status)}`}>
-                      {item.status.replace('_', ' ')}
-                    </span>
+                    <StatusBadge type="evidence" status={item.status} size="sm" />
                   </div>
                 </div>
               </div>
