@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { z } from 'zod';
 import prisma from '../utils/db.js';
 import { AuthRequest } from '../middlewares/auth.js';
+import { createNotification, notifyAdmins } from '../services/notification.service.js';
 
 const updateSchema = z.object({
   status: z.enum(['OPENED', 'ASSIGNED', 'ACTIVE_INVESTIGATION', 'UNDER_REVIEW', 'CLOSED']).optional(),
@@ -135,6 +136,32 @@ export const updateCase = async (req: AuthRequest, res: Response) => {
           ipAddress: req.ip,
         }
       });
+
+      // Fetch linked complaint to notify complainant
+      const linkedCase = await prisma.case.findUnique({
+        where: { id },
+        include: { complaint: true },
+      });
+
+      if (linkedCase?.complaint?.userId) {
+        await createNotification({
+          userId: linkedCase.complaint.userId,
+          type: 'CASE_STATUS_UPDATED',
+          title: 'Case Status Update',
+          message: `The status of case "${linkedCase.title}" was updated to ${validated.status.replace(/_/g, ' ')}.`,
+          link: `/cases/${id}`,
+        });
+      }
+
+      if (existing.investigatorId && existing.investigatorId !== req.user!.id) {
+        await createNotification({
+          userId: existing.investigatorId,
+          type: 'CASE_STATUS_UPDATED',
+          title: 'Assigned Case Status Update',
+          message: `The status of case "${existing.title}" was updated to ${validated.status.replace(/_/g, ' ')}.`,
+          link: `/cases/${id}`,
+        });
+      }
     }
 
     if (validated.investigatorId !== undefined && validated.investigatorId !== existing.investigatorId) {
@@ -259,6 +286,14 @@ export const requestAssignment = async (req: AuthRequest, res: Response) => {
         details: `Investigator requested assignment to Case:${id}`,
         ipAddress: req.ip,
       },
+    });
+
+    // Notify administrators of new assignment request in the queue
+    await notifyAdmins({
+      type: 'ASSIGNMENT_REQUEST_SUBMITTED',
+      title: 'New Case Assignment Request',
+      message: `Investigator ${request.investigator.name} requested assignment for "${request.case.title}".`,
+      link: '/admin/assignment-queue',
     });
 
     res.status(201).json({ request });
@@ -386,6 +421,31 @@ export const reviewAssignmentRequest = async (req: AuthRequest, res: Response) =
         },
       });
 
+      // Notify the assigned investigator
+      await createNotification({
+        userId: request.investigatorId,
+        type: 'ASSIGNMENT_APPROVED',
+        title: 'Assignment Request Approved',
+        message: `Your assignment request for case "${request.case.title}" was approved by an administrator. You are now the Lead Investigator.`,
+        link: `/cases/${request.caseId}`,
+      });
+
+      // Notify the complainant if linked
+      const caseWithComplaint = await prisma.case.findUnique({
+        where: { id: request.caseId },
+        include: { complaint: true },
+      });
+
+      if (caseWithComplaint?.complaint?.userId) {
+        await createNotification({
+          userId: caseWithComplaint.complaint.userId,
+          type: 'CASE_ASSIGNED',
+          title: 'Investigator Assigned to Case',
+          message: `Lead Investigator ${request.investigator.name} has been assigned to your case dossier "${request.case.title}".`,
+          link: `/cases/${request.caseId}`,
+        });
+      }
+
       return res.json({ request: updatedRequest, case: updatedCase });
     } else {
       // Reject request
@@ -412,6 +472,15 @@ export const reviewAssignmentRequest = async (req: AuthRequest, res: Response) =
           details: `Rejected assignment request for investigator ${request.investigator.name} (${request.investigatorId})`,
           ipAddress: req.ip,
         },
+      });
+
+      // Notify the requesting investigator
+      await createNotification({
+        userId: request.investigatorId,
+        type: 'ASSIGNMENT_REJECTED',
+        title: 'Assignment Request Declined',
+        message: `Your assignment request for case "${request.case.title}" was declined by an administrator.${rejectionReason ? ` Note: ${rejectionReason}` : ''}`,
+        link: `/cases/${request.caseId}`,
       });
 
       return res.json({ request: updatedRequest });

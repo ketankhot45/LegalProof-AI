@@ -6,6 +6,7 @@ import { saveEvidence, getEvidenceStream } from '../services/storage.service.js'
 import { validateEvidenceFile } from '../utils/file-validator.js';
 import crypto from 'crypto';
 import path from 'path';
+import { createNotification, notifyAdmins, notifyInvestigators } from '../services/notification.service.js';
 
 // Complainant schema: priority is strictly excluded (cannot be chosen by complainant)
 const createSchema = z.object({
@@ -84,6 +85,23 @@ export const createComplaint = async (req: AuthRequest, res: Response) => {
         details: proofRecord ? `Complaint created with supporting proof: ${proofRecord.fileName}` : 'Complaint created without supporting proof',
         ipAddress: req.ip,
       }
+    });
+
+    // Notify administrators of new complaint submission
+    await notifyAdmins({
+      type: 'COMPLAINT_SUBMITTED',
+      title: 'New Incident Complaint Submitted',
+      message: `Incident report "${complaint.title}" was submitted and is ready for triage review.`,
+      link: `/complaints/${complaint.id}`,
+    });
+
+    // Confirm registration to the complainant
+    await createNotification({
+      userId: req.user!.id,
+      type: 'COMPLAINT_REGISTERED',
+      title: 'Incident Complaint Registered',
+      message: `Your incident complaint "${complaint.title}" has been securely logged.`,
+      link: `/complaints/${complaint.id}`,
     });
 
     res.status(201).json({ complaint, supportingProof: proofRecord });
@@ -195,12 +213,19 @@ export const reviewComplaint = async (req: AuthRequest, res: Response) => {
     } else if (action === 'APPROVE') {
       newStatus = 'UNDER_REVIEW';
     } else if (action === 'ESCALATE') {
+      // Security enforcement: ONLY Administrator may formally escalate a complaint to a Case
+      if (req.user!.role !== 'ADMIN') {
+        return res.status(403).json({
+          error: 'Forbidden: Formal case escalation is reserved for Administrators only.'
+        });
+      }
+
       newStatus = 'ESCALATED';
       
-      // Investigator/Admin assigns official priority upon escalation
+      // Admin assigns official priority upon escalation
       const assignedPriority = priority || complaint.priority || 'MEDIUM';
 
-      // Create formal case
+      // Create formal case (unassigned by default)
       newCase = await prisma.case.create({
         data: {
           title: `Case: ${complaint.title}`,
@@ -239,6 +264,40 @@ export const reviewComplaint = async (req: AuthRequest, res: Response) => {
         ipAddress: req.ip,
       }
     });
+
+    // Dispatch real-time persistent notifications based on review outcome
+    if (action === 'APPROVE') {
+      await createNotification({
+        userId: complaint.userId,
+        type: 'COMPLAINT_UNDER_REVIEW',
+        title: 'Complaint Under Review',
+        message: `Your incident complaint "${complaint.title}" has been moved to preliminary investigation review.`,
+        link: `/complaints/${complaint.id}`,
+      });
+    } else if (action === 'REJECT') {
+      await createNotification({
+        userId: complaint.userId,
+        type: 'COMPLAINT_REJECTED',
+        title: 'Complaint Decision: Rejected',
+        message: `Your incident complaint "${complaint.title}" was reviewed and rejected. Reason: ${rejectionReason?.trim()}`,
+        link: `/complaints/${complaint.id}`,
+      });
+    } else if (action === 'ESCALATE' && newCase) {
+      await createNotification({
+        userId: complaint.userId,
+        type: 'COMPLAINT_ESCALATED',
+        title: 'Complaint Escalated to Formal Case',
+        message: `Your incident complaint "${complaint.title}" has been formally escalated to an active Case dossier.`,
+        link: `/cases/${newCase.id}`,
+      });
+
+      await notifyInvestigators({
+        type: 'CASE_AWAITING_ASSIGNMENT',
+        title: 'New Case Awaiting Assignment',
+        message: `New case dossier "${newCase.title}" created. Available for assignment requests.`,
+        link: `/cases/${newCase.id}`,
+      });
+    }
 
     res.json({ complaint: updated, case: newCase });
   } catch (error) {

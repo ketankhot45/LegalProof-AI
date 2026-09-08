@@ -372,12 +372,12 @@ export const ComplaintDetails = () => {
             </dl>
           </div>
 
-          {/* Investigator Action Panel */}
+          {/* Triage & Review Panel */}
           {needsReview && (
             <div className="bg-zinc-900 border border-indigo-500/30 rounded-xl p-6 space-y-4">
               <h3 className="text-xs font-semibold text-indigo-400 uppercase tracking-wider flex items-center">
                 <AlertTriangle className="w-4 h-4 mr-2" />
-                Investigator Triage Panel
+                {user?.role === 'ADMIN' ? 'Administrator Triage Panel' : 'Investigator Review Panel'}
               </h3>
 
               {validationError && (
@@ -388,53 +388,92 @@ export const ComplaintDetails = () => {
 
               {!reviewAction ? (
                 <div className="space-y-3">
-                  {/* Primary Next Action */}
-                  <div>
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 block mb-1.5">
-                      Primary Next Action
-                    </span>
-                    <button 
-                      onClick={() => { setReviewAction('ESCALATE'); setValidationError(null); }} 
-                      className="w-full px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-lg text-xs transition-colors flex items-center justify-between shadow-sm"
-                    >
-                      <span className="flex items-center">
-                        <Briefcase className="w-3.5 h-3.5 mr-2" />
-                        Escalate to Formal Case
-                      </span>
-                      <span className="text-[10px] font-mono bg-indigo-700/80 px-1.5 py-0.5 rounded text-indigo-100">Primary</span>
-                    </button>
-                  </div>
-
-                  {/* Status Progression */}
-                  <div className="pt-2 border-t border-zinc-800/80">
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 block mb-1.5">
-                      Alternative Actions
-                    </span>
-                    <div className="space-y-2">
-                      {complaint.status === 'SUBMITTED' && (
+                  {user?.role === 'ADMIN' ? (
+                    <>
+                      {/* Admin: Primary Next Action */}
+                      <div>
+                        <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 block mb-1.5">
+                          Primary Administrative Action
+                        </span>
                         <button 
-                          onClick={() => { setReviewAction('APPROVE'); setValidationError(null); }} 
-                          className="w-full px-3.5 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-lg text-xs font-medium transition-colors text-left flex items-center justify-between border border-zinc-700/60"
+                          onClick={() => { setReviewAction('ESCALATE'); setValidationError(null); }} 
+                          className="w-full px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-lg text-xs transition-colors flex items-center justify-between shadow-sm"
                         >
                           <span className="flex items-center">
-                            <Clock className="w-3.5 h-3.5 mr-2 text-amber-400" />
-                            Mark Under Review
+                            <Briefcase className="w-3.5 h-3.5 mr-2" />
+                            Escalate to Formal Case
                           </span>
-                          <span className="text-[10px] text-zinc-400">Preliminary</span>
+                          <span className="text-[10px] font-mono bg-indigo-700/80 px-1.5 py-0.5 rounded text-indigo-100">Admin Authority</span>
                         </button>
-                      )}
-                      <button 
-                        onClick={() => { setReviewAction('REJECT'); setValidationError(null); }} 
-                        className="w-full px-3.5 py-2 bg-red-950/20 hover:bg-red-900/30 text-red-400 border border-red-800/30 rounded-lg text-xs font-medium transition-colors text-left flex items-center justify-between"
-                      >
-                        <span className="flex items-center">
-                          <XCircle className="w-3.5 h-3.5 mr-2 text-red-400" />
-                          Reject Complaint
+                      </div>
+
+                      {/* Admin: Status Progression */}
+                      <div className="pt-2 border-t border-zinc-800/80">
+                        <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 block mb-1.5">
+                          Alternative Actions
                         </span>
-                        <span className="text-[10px] text-red-400/80">Decline</span>
-                      </button>
-                    </div>
-                  </div>
+                        <div className="space-y-2">
+                          {complaint.status === 'SUBMITTED' && (
+                            <button 
+                              onClick={() => { setReviewAction('APPROVE'); setValidationError(null); }} 
+                              className="w-full px-3.5 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-lg text-xs font-medium transition-colors text-left flex items-center justify-between border border-zinc-700/60"
+                            >
+                              <span className="flex items-center">
+                                <Clock className="w-3.5 h-3.5 mr-2 text-amber-400" />
+                                Mark Under Review
+                              </span>
+                              <span className="text-[10px] text-zinc-400">Preliminary</span>
+                            </button>
+                          )}
+                          <button 
+                            onClick={() => { setReviewAction('REJECT'); setValidationError(null); }} 
+                            className="w-full px-3.5 py-2 bg-red-950/20 hover:bg-red-900/30 text-red-400 border border-red-800/30 rounded-lg text-xs font-medium transition-colors text-left flex items-center justify-between"
+                          >
+                            <span className="flex items-center">
+                              <XCircle className="w-3.5 h-3.5 mr-2 text-red-400" />
+                              Reject Complaint
+                            </span>
+                            <span className="text-[10px] text-red-400/80">Decline</span>
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      {/* Investigator Actions */}
+                      <div className="p-3 bg-zinc-950/70 border border-zinc-800 rounded-lg text-[11px] text-zinc-400 leading-relaxed">
+                        <p className="flex items-start">
+                          <Info className="w-3.5 h-3.5 mr-1.5 text-indigo-400 shrink-0 mt-0.5" />
+                          <span>Formal case escalation requires <strong>Administrator authority</strong>. Investigators can advance status to <em>Under Review</em> or reject invalid reports.</span>
+                        </p>
+                      </div>
+
+                      <div className="space-y-2 pt-1">
+                        {complaint.status === 'SUBMITTED' && (
+                          <button 
+                            onClick={() => { setReviewAction('APPROVE'); setValidationError(null); }} 
+                            className="w-full px-3.5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold transition-colors text-left flex items-center justify-between shadow-sm"
+                          >
+                            <span className="flex items-center">
+                              <Clock className="w-3.5 h-3.5 mr-2 text-amber-300" />
+                              Mark Under Review
+                            </span>
+                            <span className="text-[10px] font-mono bg-indigo-700/80 px-1.5 py-0.5 rounded text-indigo-100">Review</span>
+                          </button>
+                        )}
+                        <button 
+                          onClick={() => { setReviewAction('REJECT'); setValidationError(null); }} 
+                          className="w-full px-3.5 py-2 bg-red-950/20 hover:bg-red-900/30 text-red-400 border border-red-800/30 rounded-lg text-xs font-medium transition-colors text-left flex items-center justify-between"
+                        >
+                          <span className="flex items-center">
+                            <XCircle className="w-3.5 h-3.5 mr-2 text-red-400" />
+                            Reject Complaint
+                          </span>
+                          <span className="text-[10px] text-red-400/80">Decline</span>
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
               ) : (
                 <div className="space-y-3 pt-1">

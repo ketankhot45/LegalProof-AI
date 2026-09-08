@@ -11,6 +11,7 @@ import {
   sendPasswordResetEmail,
   sendInvestigatorInvitationEmail,
 } from '../services/email.service.js';
+import { createNotification, notifyAdmins } from '../services/notification.service.js';
 
 function getAppBaseUrl(req: Request): string {
   if (process.env.APP_BASE_URL) return process.env.APP_BASE_URL;
@@ -702,6 +703,23 @@ export const activateInvestigator = async (req: Request, res: Response) => {
         ipAddress: req.ip,
       },
     }).catch(() => {});
+
+    // Notify administrators that a new investigator has activated their account
+    await notifyAdmins({
+      type: 'INVESTIGATOR_ACTIVATED',
+      title: 'Investigator Account Activated',
+      message: `Investigator ${user.name} (${user.email}) has activated their account and is ready for case assignments.`,
+      link: '/admin/investigators',
+    });
+
+    // Send welcome notification to investigator
+    await createNotification({
+      userId: user.id,
+      type: 'ACCOUNT_ACTIVATED',
+      title: 'Investigator Account Active',
+      message: 'Welcome to LegalProof AI. You are now authorized to triage complaints and request lead investigator case assignments.',
+      link: '/dashboard',
+    });
 
     const jwtToken = generateToken(user.id, user.role, user.tokenVersion);
 

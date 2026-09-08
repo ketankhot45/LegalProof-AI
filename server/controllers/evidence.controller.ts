@@ -13,6 +13,7 @@ import {
 import { validateEvidenceFile } from '../utils/file-validator.js';
 import crypto from 'crypto';
 import path from 'path';
+import { createNotification, notifyAdmins } from '../services/notification.service.js';
 
 // Zod schemas
 const uploadBodySchema = z.object({
@@ -332,6 +333,24 @@ export const verifyEvidenceIntegrity = async (req: AuthRequest, res: Response) =
     });
 
     if (!verified) {
+      // Dispatch integrity failure alert to Admins and assigned investigator
+      await notifyAdmins({
+        type: 'EVIDENCE_INTEGRITY_ALERT',
+        title: 'Evidence Integrity Failure Alert',
+        message: `Cryptographic SHA-256 mismatch detected for evidence "${evidence.fileName}" in case "${c.title}".`,
+        link: `/cases/${c.id}`,
+      });
+
+      if (c.investigatorId) {
+        await createNotification({
+          userId: c.investigatorId,
+          type: 'EVIDENCE_INTEGRITY_ALERT',
+          title: 'Integrity Warning: Evidence Mismatch',
+          message: `Cryptographic SHA-256 digest failed verification for evidence "${evidence.fileName}".`,
+          link: `/cases/${c.id}`,
+        });
+      }
+
       return res.json({ 
         verified: false, 
         code: 'HASH_MISMATCH',
@@ -376,6 +395,33 @@ export const anchorEvidenceController = async (req: AuthRequest, res: Response) 
     }
 
     const updatedEvidence = await anchorEvidenceOnBlockchain(id, req.user!.id, req.ip);
+
+    // Notify assigned investigator and complainant if applicable
+    if (evidence.case?.investigatorId && evidence.case.investigatorId !== req.user!.id) {
+      await createNotification({
+        userId: evidence.case.investigatorId,
+        type: 'BLOCKCHAIN_ANCHOR_CONFIRMED',
+        title: 'Blockchain Anchor Confirmed',
+        message: `Evidence "${evidence.fileName}" was anchored on Polygon Amoy blockchain ledger.`,
+        link: `/cases/${evidence.case.id}`,
+      });
+    }
+
+    const linkedCase = await prisma.case.findUnique({
+      where: { id: evidence.caseId },
+      include: { complaint: true },
+    });
+
+    if (linkedCase?.complaint?.userId) {
+      await createNotification({
+        userId: linkedCase.complaint.userId,
+        type: 'BLOCKCHAIN_ANCHOR_CONFIRMED',
+        title: 'Evidence Secured On-Chain',
+        message: `Evidence "${evidence.fileName}" has been cryptographically anchored to the public ledger.`,
+        link: `/cases/${evidence.caseId}`,
+      });
+    }
+
     res.json({ message: 'Evidence successfully anchored to blockchain', evidence: updatedEvidence });
   } catch (error: any) {
     res.status(400).json({ error: error.message || 'Failed to anchor evidence' });
@@ -465,6 +511,17 @@ export const analyzeEvidenceController = async (req: AuthRequest, res: Response)
         ipAddress: req.ip,
       }
     });
+
+    // Notify assigned investigator
+    if (evidence.case?.investigatorId) {
+      await createNotification({
+        userId: evidence.case.investigatorId,
+        type: 'AI_ANALYSIS_COMPLETED',
+        title: 'AI Analysis Completed',
+        message: `AI Forensic Analysis completed for evidence "${evidence.fileName}".`,
+        link: `/cases/${evidence.caseId}`,
+      });
+    }
 
     res.json({
       message: 'AI evidence analysis completed successfully',

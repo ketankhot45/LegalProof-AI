@@ -14,6 +14,7 @@ import caseRoutes from './routes/case.routes.js';
 import evidenceRoutes from './routes/evidence.routes.js';
 import blockchainRoutes from './routes/blockchain.routes.js';
 import dashboardRoutes from './routes/dashboard.routes.js';
+import notificationRoutes from './routes/notification.routes.js';
 
 const PORT = 3000;
 
@@ -117,6 +118,7 @@ async function startServer() {
   app.use('/api/v1/cases', caseRoutes);
   app.use('/api/v1/blockchain', publicBlockchainLimiter, blockchainRoutes);
   app.use('/api/v1/dashboard', dashboardRoutes);
+  app.use('/api/v1/notifications', notificationRoutes);
   app.use('/api/v1', evidenceRoutes);
 
   // Vite Middleware for SPA and Dev
