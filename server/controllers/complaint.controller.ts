@@ -18,6 +18,14 @@ const reviewSchema = z.object({
   action: z.enum(['APPROVE', 'REJECT', 'ESCALATE']),
   rejectionReason: z.string().optional(),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']).optional(),
+}).refine(data => {
+  if (data.action === 'REJECT') {
+    return typeof data.rejectionReason === 'string' && data.rejectionReason.trim().length > 0;
+  }
+  return true;
+}, {
+  message: 'A non-empty rejection reason is required when rejecting a complaint.',
+  path: ['rejectionReason'],
 });
 
 export const createComplaint = async (req: AuthRequest, res: Response) => {
@@ -219,7 +227,7 @@ export const reviewComplaint = async (req: AuthRequest, res: Response) => {
       data: {
         status: newStatus,
         priority: priority || complaint.priority,
-        rejectionReason: action === 'REJECT' ? rejectionReason : null,
+        rejectionReason: action === 'REJECT' ? rejectionReason?.trim() : null,
       }
     });
 

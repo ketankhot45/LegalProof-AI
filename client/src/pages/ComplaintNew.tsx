@@ -82,7 +82,10 @@ export const ComplaintNew = () => {
       showToast('Complaint submitted successfully.', 'success');
       navigate('/complaints');
     } catch (err: any) {
-      setError(err.message || 'Error occurred while filing complaint');
+      const errMsg = err?.message === 'Failed to fetch' 
+        ? 'Network request timed out or connection was interrupted. Please check your connectivity and retry.' 
+        : (err?.message || 'Error occurred while filing complaint');
+      setError(errMsg);
     } finally {
       setLoading(false);
     }

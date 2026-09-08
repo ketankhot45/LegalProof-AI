@@ -740,6 +740,16 @@ export const listInvestigators = async (req: AuthRequest, res: Response) => {
         role: true,
         isEmailVerified: true,
         createdAt: true,
+        assignedCases: {
+          select: {
+            id: true,
+            title: true,
+            status: true,
+            priority: true,
+            createdAt: true,
+          },
+          orderBy: { createdAt: 'desc' },
+        },
         _count: {
           select: { assignedCases: true },
         },

@@ -106,9 +106,11 @@ export const updateCase = async (req: AuthRequest, res: Response) => {
     }
 
     if (req.user!.role === 'INVESTIGATOR') {
-      // Cannot modify a case assigned to another investigator
-      if (existing.investigatorId && existing.investigatorId !== req.user!.id) {
-        return res.status(403).json({ error: 'Forbidden: You are not authorized to modify this case' });
+      // Must be the assigned lead investigator to modify case details, status, or priority
+      if (!existing.investigatorId || existing.investigatorId !== req.user!.id) {
+        return res.status(403).json({ 
+          error: 'Forbidden: Only the assigned lead investigator or an administrator can modify this case dossier' 
+        });
       }
       // Business Rule: Investigators CANNOT directly assign cases to themselves or anyone else
       if (validated.investigatorId !== undefined) {

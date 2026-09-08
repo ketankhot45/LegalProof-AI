@@ -220,7 +220,7 @@ export const CaseDetails = () => {
             to="/cases"
             className="inline-flex items-center px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-lg text-sm font-medium transition-colors"
           >
-            <ArrowLeft className="w-4 h-4 mr-2" /> Return to Cases Roster
+            <ArrowLeft className="w-4 h-4 mr-2" /> Return to Cases
           </Link>
         </div>
       </div>
@@ -239,6 +239,32 @@ export const CaseDetails = () => {
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       <Breadcrumbs items={[{ label: 'Cases', href: '/cases' }, { label: caseData.title }]} />
+
+      {/* Unassigned Case Workflow Notice Banner */}
+      {!caseData.investigatorId && (
+        <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+          <div className="flex items-start space-x-3">
+            <div className="p-2 bg-amber-500/15 rounded-lg border border-amber-500/30 text-amber-400 shrink-0 mt-0.5">
+              <Shield className="w-4 h-4" />
+            </div>
+            <div>
+              <h4 className="font-semibold text-amber-300 text-sm">Case created. Awaiting investigator assignment.</h4>
+              <p className="text-zinc-300 mt-0.5 leading-relaxed">
+                This investigation dossier is registered. Evidence collection, notes, and status progression require an assigned Lead Investigator approved by an Administrator.
+              </p>
+            </div>
+          </div>
+          {user?.role === 'INVESTIGATOR' && !myPendingRequest && (
+            <button
+              onClick={() => setShowRequestForm(true)}
+              className="inline-flex items-center justify-center px-3.5 py-2 min-h-[38px] bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold shrink-0 transition-colors shadow-sm"
+            >
+              <UserPlus className="w-3.5 h-3.5 mr-1.5" />
+              Request Assignment
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Top Header & Status Control */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

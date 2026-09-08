@@ -71,7 +71,7 @@ export const DashboardLayout = () => {
 
   const adminAdditions = [
     {
-      label: 'Investigator Roster',
+      label: 'Investigator Directory',
       path: '/investigators',
       icon: User,
     },
