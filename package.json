@@ -11,7 +11,7 @@
     "clean": "rm -rf dist",
     "seed:investigator": "tsx scripts/seed-investigator.ts",
     "provision:admin": "tsx scripts/provision-admin.ts",
-    "test:auth": "tsx scripts/test-auth-suite.ts",
+    "test:storage": "tsx scripts/test-storage.ts",
     "deploy:contract": "hardhat --config hardhat.config.cjs run blockchain/scripts/deploy.cjs --network polygonAmoy",
     "lint": "tsc --noEmit"
   },
@@ -19,6 +19,7 @@
     "@google-cloud/storage": "^8.0.0",
     "@google/genai": "^2.4.0",
     "@prisma/client": "^5.22.0",
+    "@supabase/supabase-js": "^2.116.0",
     "@tailwindcss/vite": "^4.1.14",
     "@vitejs/plugin-react": "^5.0.4",
     "bcrypt": "^6.0.0",
