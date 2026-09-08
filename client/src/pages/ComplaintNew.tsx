@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useNavigate, Link } from 'react-router';
 import { ArrowLeft, Send, AlertCircle, Upload, Paperclip, X, FileText, Info } from 'lucide-react';
 import { useFeedback } from '../contexts/FeedbackContext';
+import { apiFetch } from '../lib/api';
 
 export const ComplaintNew = () => {
   const [title, setTitle] = useState('');
@@ -66,18 +67,13 @@ export const ComplaintNew = () => {
         formData.append('proof', proofFile);
       }
 
-      const res = await fetch('/api/v1/complaints', {
+      const { data } = await apiFetch('/api/v1/complaints', {
         method: 'POST',
         headers: { 
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: formData,
       });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'Failed to submit incident report');
-      }
 
       showToast('Complaint submitted successfully.', 'success');
       navigate('/complaints');
