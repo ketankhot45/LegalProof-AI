@@ -174,17 +174,16 @@ export const EvidenceVault = () => {
   const selectedCaseObj = cases.find(c => c.id === selectedCaseId);
   const canUploadToSelected = 
     selectedCaseObj && 
-    (user?.role === 'ADMIN' || (user?.role === 'INVESTIGATOR' && selectedCaseObj.investigatorId === user?.id));
-
-  const isAuthorizedUploader = user?.role === 'ADMIN' || user?.role === 'INVESTIGATOR';
+    (user?.role === 'INVESTIGATOR' && selectedCaseObj.investigatorId === user?.id);
 
   const uploadableCases = useMemo(() => {
     return cases.filter(c => {
-      if (user?.role === 'ADMIN') return true;
       if (user?.role === 'INVESTIGATOR') return c.investigatorId === user?.id;
       return false;
     });
   }, [cases, user]);
+
+  const isAuthorizedUploader = user?.role === 'INVESTIGATOR' && uploadableCases.length > 0;
 
   const handleUploadClick = () => {
     if (selectedCaseId !== 'ALL' && canUploadToSelected) {

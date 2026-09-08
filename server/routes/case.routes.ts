@@ -20,6 +20,7 @@ router.get('/assignment-requests', getAssignmentRequests);
 router.post('/assignment-requests/:requestId/review', authorize(['ADMIN']), reviewAssignmentRequest);
 router.get('/:id', getCase);
 router.put('/:id', updateCase);
+router.patch('/:id', updateCase);
 router.post('/:id/notes', addCaseNote);
 router.post('/:id/assignment-requests', authorize(['INVESTIGATOR']), requestAssignment);
 

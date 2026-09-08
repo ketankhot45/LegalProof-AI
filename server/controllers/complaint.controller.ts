@@ -213,16 +213,9 @@ export const reviewComplaint = async (req: AuthRequest, res: Response) => {
     } else if (action === 'APPROVE') {
       newStatus = 'UNDER_REVIEW';
     } else if (action === 'ESCALATE') {
-      // Security enforcement: ONLY Administrator may formally escalate a complaint to a Case
-      if (req.user!.role !== 'ADMIN') {
-        return res.status(403).json({
-          error: 'Forbidden: Formal case escalation is reserved for Administrators only.'
-        });
-      }
-
       newStatus = 'ESCALATED';
       
-      // Admin assigns official priority upon escalation
+      // Assign official priority upon escalation
       const assignedPriority = priority || complaint.priority || 'MEDIUM';
 
       // Create formal case (unassigned by default)
@@ -241,7 +234,7 @@ export const reviewComplaint = async (req: AuthRequest, res: Response) => {
           userId: req.user!.id,
           action: 'CASE_CREATED',
           resource: `Case:${newCase.id}`,
-          details: `Escalated from Complaint:${complaint.id} with priority ${assignedPriority}`,
+          details: `Escalated from Complaint:${complaint.id} by ${req.user!.role} with priority ${assignedPriority}`,
           ipAddress: req.ip,
         }
       });
@@ -295,6 +288,13 @@ export const reviewComplaint = async (req: AuthRequest, res: Response) => {
         type: 'CASE_AWAITING_ASSIGNMENT',
         title: 'New Case Awaiting Assignment',
         message: `New case dossier "${newCase.title}" created. Available for assignment requests.`,
+        link: `/cases/${newCase.id}`,
+      });
+
+      await notifyAdmins({
+        type: 'CASE_AWAITING_ASSIGNMENT',
+        title: 'Case Escalated from Complaint',
+        message: `Case dossier "${newCase.title}" escalated from complaint and is open in queue for investigator assignment.`,
         link: `/cases/${newCase.id}`,
       });
     }

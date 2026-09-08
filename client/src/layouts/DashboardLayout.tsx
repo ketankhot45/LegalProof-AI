@@ -4,6 +4,7 @@ import { Navigate, Link, useLocation, Outlet } from 'react-router';
 import { 
   FileText, 
   User, 
+  Users,
   LogOut, 
   LayoutDashboard, 
   Briefcase, 
@@ -13,7 +14,8 @@ import {
   Radio,
   ExternalLink,
   FolderLock,
-  PlusCircle
+  PlusCircle,
+  ClipboardList
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { Logo } from '../components/Logo';
@@ -41,8 +43,32 @@ export const DashboardLayout = () => {
   }
 
   const isComplainant = user.role === 'COMPLAINANT';
+  const isAdmin = user.role === 'ADMIN';
 
-  const baseInvestigatorNav = [
+  const complainantNav = [
+    {
+      label: 'Dashboard',
+      path: '/dashboard',
+      icon: LayoutDashboard,
+    },
+    {
+      label: 'My Complaints',
+      path: '/complaints',
+      icon: FileText,
+    },
+    {
+      label: 'New Complaint',
+      path: '/complaints/new',
+      icon: PlusCircle,
+    },
+    {
+      label: 'Public Verification',
+      path: '/verify',
+      icon: CheckCircle,
+    }
+  ];
+
+  const investigatorNav = [
     {
       label: 'Dashboard',
       path: '/dashboard',
@@ -70,43 +96,45 @@ export const DashboardLayout = () => {
     }
   ];
 
-  const adminAdditions = [
+  const adminNav = [
+    {
+      label: 'Dashboard',
+      path: '/dashboard',
+      icon: LayoutDashboard,
+    },
+    {
+      label: 'Complaint Oversight',
+      path: '/complaints',
+      icon: FileText,
+    },
+    {
+      label: 'Case Oversight',
+      path: '/cases',
+      icon: Briefcase,
+    },
     {
       label: 'Investigator Directory',
       path: '/investigators',
-      icon: User,
+      icon: Users,
     },
     {
       label: 'Assignment Queue',
       path: '/assignments',
-      icon: FileText, // Or a better icon
+      icon: ClipboardList,
+    },
+    {
+      label: 'Evidence Vault',
+      path: '/evidence',
+      icon: FolderLock,
+    },
+    {
+      label: 'Public Verification',
+      path: '/verify',
+      icon: CheckCircle,
     }
   ];
 
-  const navItems = isComplainant
-    ? [
-        {
-          label: 'Dashboard',
-          path: '/dashboard',
-          icon: LayoutDashboard,
-        },
-        {
-          label: 'My Complaints',
-          path: '/complaints',
-          icon: FileText,
-        },
-        {
-          label: 'New Complaint',
-          path: '/complaints/new',
-          icon: PlusCircle,
-        },
-        {
-          label: 'Public Verification',
-          path: '/verify',
-          icon: CheckCircle,
-        }
-      ]
-    : user.role === 'ADMIN' ? [...baseInvestigatorNav, ...adminAdditions] : baseInvestigatorNav;
+  const navItems = isComplainant ? complainantNav : isAdmin ? adminNav : investigatorNav;
 
   const isActiveRoute = (path: string) => {
     if (path === '/dashboard') return location.pathname === '/dashboard';

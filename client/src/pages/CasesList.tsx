@@ -18,7 +18,7 @@ import {
 import { StatusBadge } from '../components/StatusBadge';
 import { HashDisplay } from '../components/HashDisplay';
 
-type QuickFilter = 'ALL' | 'ASSIGNED_TO_ME' | 'UNASSIGNED';
+type QuickFilter = 'ALL' | 'ASSIGNED_TO_ME' | 'UNASSIGNED' | 'ASSIGNED';
 
 export const CasesList = () => {
   const { user } = useAuth();
@@ -31,6 +31,8 @@ export const CasesList = () => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [quickFilter, setQuickFilter] = useState<QuickFilter>('ALL');
   const [refreshing, setRefreshing] = useState(false);
+
+  const isAdmin = user?.role === 'ADMIN';
 
   if (user?.role === 'COMPLAINANT') {
     return (
@@ -53,7 +55,6 @@ export const CasesList = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
 
   const fetchCases = (isManual = false) => {
     if (isManual) setRefreshing(true);
@@ -103,10 +104,12 @@ export const CasesList = () => {
   };
 
   const counts = useMemo(() => {
-    const assigned = cases.filter(c => Boolean(c.investigatorId && c.investigatorId === user?.id)).length;
+    const assignedToMe = cases.filter(c => Boolean(c.investigatorId && c.investigatorId === user?.id)).length;
+    const assigned = cases.filter(c => Boolean(c.investigatorId)).length;
     const unassigned = cases.filter(c => !c.investigatorId).length;
     return {
       all: cases.length,
+      assignedToMe,
       assigned,
       unassigned
     };
@@ -125,6 +128,8 @@ export const CasesList = () => {
       let matchesQuickFilter = true;
       if (quickFilter === 'ASSIGNED_TO_ME') {
         matchesQuickFilter = Boolean(c.investigatorId && c.investigatorId === user?.id);
+      } else if (quickFilter === 'ASSIGNED') {
+        matchesQuickFilter = Boolean(c.investigatorId);
       } else if (quickFilter === 'UNASSIGNED') {
         matchesQuickFilter = !c.investigatorId;
       }
@@ -155,16 +160,20 @@ export const CasesList = () => {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-semibold text-white tracking-tight">Case Operations & Vault</h2>
+          <h2 className="text-2xl font-semibold text-white tracking-tight">
+            {isAdmin ? 'Case Oversight & Registry' : 'Case Operations & Vault'}
+          </h2>
           <p className="text-sm text-zinc-400 mt-1">
-            Manage escalated formal investigations, assigned leads, case notes, and evidence vault artifacts.
+            {isAdmin
+              ? 'Monitor active formal investigations, assigned leads, case progression, and digital evidence vaults.'
+              : 'Manage escalated formal investigations, assigned leads, case notes, and evidence vault artifacts.'}
           </p>
         </div>
         <button
           type="button"
           onClick={() => fetchCases(true)}
           disabled={refreshing}
-          className="self-start sm:self-auto flex items-center px-3 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 rounded-xl text-xs font-medium transition-colors disabled:opacity-50 shadow-sm"
+          className="self-start sm:self-auto flex items-center px-3.5 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 rounded-xl text-xs font-medium transition-colors disabled:opacity-50 shadow-sm"
         >
           <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${refreshing ? 'animate-spin' : ''}`} />
           Refresh Registry
@@ -195,23 +204,43 @@ export const CasesList = () => {
               </span>
             </button>
 
-            <button
-              type="button"
-              onClick={() => setQuickFilter('ASSIGNED_TO_ME')}
-              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all flex items-center gap-1.5 ${
-                quickFilter === 'ASSIGNED_TO_ME'
-                  ? 'bg-indigo-600 text-white font-semibold shadow-sm'
-                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/60'
-              }`}
-            >
-              <UserCheck className="w-3.5 h-3.5" />
-              <span>Assigned to Me</span>
-              <span className={`text-[10px] px-1.5 py-0.2 rounded-md font-mono ${
-                quickFilter === 'ASSIGNED_TO_ME' ? 'bg-indigo-700 text-white' : 'bg-zinc-900 text-zinc-500'
-              }`}>
-                {counts.assigned}
-              </span>
-            </button>
+            {isAdmin ? (
+              <button
+                type="button"
+                onClick={() => setQuickFilter('ASSIGNED')}
+                className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all flex items-center gap-1.5 ${
+                  quickFilter === 'ASSIGNED'
+                    ? 'bg-indigo-600 text-white font-semibold shadow-sm'
+                    : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/60'
+                }`}
+              >
+                <UserCheck className="w-3.5 h-3.5" />
+                <span>Assigned Cases</span>
+                <span className={`text-[10px] px-1.5 py-0.2 rounded-md font-mono ${
+                  quickFilter === 'ASSIGNED' ? 'bg-indigo-700 text-white' : 'bg-zinc-900 text-zinc-500'
+                }`}>
+                  {counts.assigned}
+                </span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setQuickFilter('ASSIGNED_TO_ME')}
+                className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all flex items-center gap-1.5 ${
+                  quickFilter === 'ASSIGNED_TO_ME'
+                    ? 'bg-indigo-600 text-white font-semibold shadow-sm'
+                    : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/60'
+                }`}
+              >
+                <UserCheck className="w-3.5 h-3.5" />
+                <span>Assigned to Me</span>
+                <span className={`text-[10px] px-1.5 py-0.2 rounded-md font-mono ${
+                  quickFilter === 'ASSIGNED_TO_ME' ? 'bg-indigo-700 text-white' : 'bg-zinc-900 text-zinc-500'
+                }`}>
+                  {counts.assignedToMe}
+                </span>
+              </button>
+            )}
 
             <button
               type="button"
@@ -223,7 +252,7 @@ export const CasesList = () => {
               }`}
             >
               <Inbox className="w-3.5 h-3.5" />
-              <span>Unassigned Triage</span>
+              <span>{isAdmin ? 'Unassigned Cases' : 'Unassigned Triage'}</span>
               <span className={`text-[10px] px-1.5 py-0.2 rounded-md font-mono ${
                 quickFilter === 'UNASSIGNED' ? 'bg-amber-700 text-white' : 'bg-zinc-900 text-zinc-500'
               }`}>
@@ -237,6 +266,7 @@ export const CasesList = () => {
             <span className="text-zinc-500">Active View:</span>
             <span className="text-zinc-300 font-medium">
               {quickFilter === 'ALL' ? 'Complete Authorized Roster' :
+               quickFilter === 'ASSIGNED' ? 'Cases with Assigned Lead Investigator' :
                quickFilter === 'ASSIGNED_TO_ME' ? 'Cases Claimed by Current Investigator' :
                'Open Cases Awaiting Investigation Lead'}
             </span>
@@ -502,7 +532,11 @@ export const CasesList = () => {
                             to={`/cases/${c.id}`} 
                             className="inline-flex items-center text-xs font-semibold text-indigo-300 hover:text-white bg-indigo-600/15 hover:bg-indigo-600/30 px-3 py-2 min-h-[36px] rounded-lg border border-indigo-500/30 transition-colors"
                           >
-                            <span>{!c.investigatorId && user?.role === 'INVESTIGATOR' ? 'Review / Request Lead' : 'View Case'}</span>
+                            <span>
+                              {isAdmin 
+                                ? 'Inspect Case' 
+                                : (!c.investigatorId ? 'Review / Request Lead' : 'View Case')}
+                            </span>
                             <ArrowRight className="w-3 h-3 ml-1.5" />
                           </Link>
                         </div>
@@ -556,7 +590,11 @@ export const CasesList = () => {
                       to={`/cases/${c.id}`} 
                       className="inline-flex items-center justify-center text-xs font-semibold text-indigo-300 hover:text-white bg-indigo-600/20 hover:bg-indigo-600/30 px-3.5 py-2 min-h-[40px] rounded-lg border border-indigo-500/30 transition-colors"
                     >
-                      <span>{!c.investigatorId && user?.role === 'INVESTIGATOR' ? 'Review / Request' : 'View Case'}</span>
+                      <span>
+                        {isAdmin 
+                          ? 'Inspect Case' 
+                          : (!c.investigatorId ? 'Review / Request' : 'View Case')}
+                      </span>
                       <ArrowRight className="w-3 h-3 ml-1.5" />
                     </Link>
                   </div>

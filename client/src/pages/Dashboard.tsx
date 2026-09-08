@@ -19,7 +19,9 @@ import {
   FileX2, 
   UserCheck, 
   FolderLock,
-  UserPlus
+  UserPlus,
+  Users,
+  ClipboardList
 } from 'lucide-react';
 import { AdminInvestigatorInviteModal } from '../components/AdminInvestigatorInviteModal';
 import { StatusBadge } from '../components/StatusBadge';
@@ -106,7 +108,8 @@ export const Dashboard = () => {
     );
   }
 
-  const isInvestigator = user?.role === 'INVESTIGATOR' || user?.role === 'ADMIN';
+  const isAdmin = user?.role === 'ADMIN';
+  const isInvestigator = user?.role === 'INVESTIGATOR' || isAdmin;
 
   return (
     <div className="space-y-8">
@@ -115,24 +118,30 @@ export const Dashboard = () => {
         <div>
           <div className="flex items-center space-x-3">
             <h2 className="text-2xl font-semibold text-white tracking-tight">
-              {isInvestigator ? 'Security Operations Command Center' : 'Complainant Workspace'}
+              {isAdmin 
+                ? 'Platform Administration & Oversight' 
+                : isInvestigator 
+                ? 'Investigator Operations Workspace' 
+                : 'Complainant Workspace'}
             </h2>
             <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full border border-indigo-500/30 bg-indigo-500/10 text-indigo-400">
               {user?.role}
             </span>
           </div>
           <p className="text-sm text-zinc-400 mt-1">
-            {isInvestigator 
+            {isAdmin
+              ? 'Jurisdiction oversight, investigator roster governance, case assignment reviews, and cryptographic audit monitoring.'
+              : isInvestigator 
               ? 'Real-time telemetry, active case investigations, evidence integrity, and blockchain anchoring.' 
               : 'Track complaint submissions, review progress, and verify cryptographic evidence records.'}
           </p>
         </div>
 
         <div className="flex items-center space-x-3">
-          {user?.role === 'ADMIN' && (
+          {isAdmin && (
             <button
               onClick={() => setIsInviteModalOpen(true)}
-              className="flex items-center px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-md text-xs font-medium transition-colors shadow-sm"
+              className="flex items-center px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold transition-colors shadow-sm"
             >
               <UserPlus className="w-3.5 h-3.5 mr-1.5" />
               Invite Investigator
@@ -141,7 +150,7 @@ export const Dashboard = () => {
           <button
             onClick={() => fetchStats(true)}
             disabled={refreshing}
-            className="flex items-center px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 rounded-md text-xs font-medium transition-colors disabled:opacity-50"
+            className="flex items-center px-3 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 rounded-xl text-xs font-medium transition-colors disabled:opacity-50"
           >
             <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${refreshing ? 'animate-spin' : ''}`} />
             Refresh
@@ -149,7 +158,7 @@ export const Dashboard = () => {
           {!isInvestigator && (
             <Link
               to="/complaints/new"
-              className="flex items-center px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-xs font-medium transition-colors"
+              className="flex items-center px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-medium transition-colors shadow-sm"
             >
               <Plus className="w-3.5 h-3.5 mr-1.5" />
               New Complaint
@@ -320,21 +329,33 @@ export const Dashboard = () => {
           {/* Key Metrics Grid */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             <div className="bg-zinc-900 border border-zinc-800 p-4 rounded-xl">
-              <span className="text-[11px] font-medium text-zinc-400 uppercase tracking-wider">Active Cases</span>
+              <span className="text-[11px] font-medium text-zinc-400 uppercase tracking-wider">
+                {isAdmin ? 'Case Oversight' : 'Active Cases'}
+              </span>
               <p className="text-2xl font-bold text-white mt-2">{data?.stats?.activeCases || 0}</p>
               <p className="text-[11px] text-zinc-500 mt-1">{data?.stats?.totalCases || 0} total cases</p>
             </div>
 
             <div className="bg-zinc-900 border border-zinc-800 p-4 rounded-xl">
-              <span className="text-[11px] font-medium text-zinc-400 uppercase tracking-wider">My Assigned</span>
-              <p className="text-2xl font-bold text-indigo-400 mt-2">{data?.stats?.assignedToMe || 0}</p>
-              <p className="text-[11px] text-zinc-500 mt-1">Lead investigator</p>
+              <span className="text-[11px] font-medium text-zinc-400 uppercase tracking-wider">
+                {isAdmin ? 'Caseload Roster' : 'My Assigned'}
+              </span>
+              <p className="text-2xl font-bold text-indigo-400 mt-2">
+                {isAdmin ? (data?.stats?.totalCases || 0) : (data?.stats?.assignedToMe || 0)}
+              </p>
+              <p className="text-[11px] text-zinc-500 mt-1">
+                {isAdmin ? 'Jurisdiction dossier' : 'Lead investigator'}
+              </p>
             </div>
 
             <div className="bg-zinc-900 border border-zinc-800 p-4 rounded-xl">
-              <span className="text-[11px] font-medium text-zinc-400 uppercase tracking-wider">Pending Intake</span>
+              <span className="text-[11px] font-medium text-zinc-400 uppercase tracking-wider">
+                {isAdmin ? 'Complaint Oversight' : 'Pending Intake'}
+              </span>
               <p className="text-2xl font-bold text-amber-400 mt-2">{data?.stats?.pendingComplaints || 0}</p>
-              <p className="text-[11px] text-zinc-500 mt-1">Complaints to triage</p>
+              <p className="text-[11px] text-zinc-500 mt-1">
+                {isAdmin ? 'Awaiting investigator triage' : 'Complaints to triage'}
+              </p>
             </div>
 
             <Link 
@@ -365,71 +386,139 @@ export const Dashboard = () => {
           </div>
 
           {/* Quick Actions Banner */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Link
-              to="/complaints"
-              className="p-4 bg-zinc-900/60 hover:bg-zinc-900 border border-zinc-800 hover:border-amber-500/40 rounded-xl transition-all flex items-center justify-between"
-            >
-              <div className="flex items-center space-x-3">
-                <div className="p-2.5 bg-amber-500/10 text-amber-400 rounded-lg">
-                  <FileText className="w-5 h-5" />
+          {isAdmin ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Link
+                to="/complaints"
+                className="p-4 bg-zinc-900/60 hover:bg-zinc-900 border border-zinc-800 hover:border-amber-500/40 rounded-xl transition-all flex items-center justify-between"
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="p-2.5 bg-amber-500/10 text-amber-400 rounded-lg">
+                    <FileText className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-white">Complaint Oversight</h4>
+                    <p className="text-xs text-zinc-500">Audit triage & escalations</p>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="text-sm font-medium text-white">Review Complaints</h4>
-                  <p className="text-xs text-zinc-500">Triage incoming submissions</p>
-                </div>
-              </div>
-              <ArrowRight className="w-4 h-4 text-zinc-600" />
-            </Link>
+                <ArrowRight className="w-4 h-4 text-zinc-600" />
+              </Link>
 
-            <Link
-              to="/cases"
-              className="p-4 bg-zinc-900/60 hover:bg-zinc-900 border border-zinc-800 hover:border-indigo-500/40 rounded-xl transition-all flex items-center justify-between"
-            >
-              <div className="flex items-center space-x-3">
-                <div className="p-2.5 bg-indigo-500/10 text-indigo-400 rounded-lg">
-                  <Briefcase className="w-5 h-5" />
+              <Link
+                to="/cases"
+                className="p-4 bg-zinc-900/60 hover:bg-zinc-900 border border-zinc-800 hover:border-indigo-500/40 rounded-xl transition-all flex items-center justify-between"
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="p-2.5 bg-indigo-500/10 text-indigo-400 rounded-lg">
+                    <Briefcase className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-white">Case Oversight</h4>
+                    <p className="text-xs text-zinc-500">Monitor active investigations</p>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="text-sm font-medium text-white">Active Cases</h4>
-                  <p className="text-xs text-zinc-500">Manage case investigations</p>
-                </div>
-              </div>
-              <ArrowRight className="w-4 h-4 text-zinc-600" />
-            </Link>
+                <ArrowRight className="w-4 h-4 text-zinc-600" />
+              </Link>
 
-            <Link
-              to="/evidence"
-              className="p-4 bg-zinc-900/60 hover:bg-zinc-900 border border-zinc-800 hover:border-cyan-500/40 rounded-xl transition-all flex items-center justify-between"
-            >
-              <div className="flex items-center space-x-3">
-                <div className="p-2.5 bg-cyan-500/10 text-cyan-400 rounded-lg">
-                  <FolderLock className="w-5 h-5" />
+              <Link
+                to="/investigators"
+                className="p-4 bg-zinc-900/60 hover:bg-zinc-900 border border-zinc-800 hover:border-cyan-500/40 rounded-xl transition-all flex items-center justify-between"
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="p-2.5 bg-cyan-500/10 text-cyan-400 rounded-lg">
+                    <Users className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-white">Investigator Directory</h4>
+                    <p className="text-xs text-zinc-500">Manage roster & caseloads</p>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="text-sm font-medium text-white">Evidence Vault</h4>
-                  <p className="text-xs text-zinc-500">Cryptographic artifact storage</p>
-                </div>
-              </div>
-              <ArrowRight className="w-4 h-4 text-zinc-600" />
-            </Link>
+                <ArrowRight className="w-4 h-4 text-zinc-600" />
+              </Link>
 
-            <Link
-              to="/verify"
-              className="p-4 bg-zinc-900/60 hover:bg-zinc-900 border border-zinc-800 hover:border-emerald-500/40 rounded-xl transition-all flex items-center justify-between"
-            >
-              <div className="flex items-center space-x-3">
-                <div className="p-2.5 bg-emerald-500/10 text-emerald-400 rounded-lg">
-                  <CheckCircle className="w-5 h-5" />
+              <Link
+                to="/assignments"
+                className="p-4 bg-zinc-900/60 hover:bg-zinc-900 border border-zinc-800 hover:border-emerald-500/40 rounded-xl transition-all flex items-center justify-between"
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="p-2.5 bg-emerald-500/10 text-emerald-400 rounded-lg">
+                    <ClipboardList className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-white">Assignment Queue</h4>
+                    <p className="text-xs text-zinc-500">Review case lead requests</p>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="text-sm font-medium text-white">Public Verification</h4>
-                  <p className="text-xs text-zinc-500">On-chain SHA-256 validation</p>
+                <ArrowRight className="w-4 h-4 text-zinc-600" />
+              </Link>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Link
+                to="/complaints"
+                className="p-4 bg-zinc-900/60 hover:bg-zinc-900 border border-zinc-800 hover:border-amber-500/40 rounded-xl transition-all flex items-center justify-between"
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="p-2.5 bg-amber-500/10 text-amber-400 rounded-lg">
+                    <FileText className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-white">Review Complaints</h4>
+                    <p className="text-xs text-zinc-500">Triage incoming submissions</p>
+                  </div>
                 </div>
-              </div>
-              <ArrowRight className="w-4 h-4 text-zinc-600" />
-            </Link>
-          </div>
+                <ArrowRight className="w-4 h-4 text-zinc-600" />
+              </Link>
+
+              <Link
+                to="/cases"
+                className="p-4 bg-zinc-900/60 hover:bg-zinc-900 border border-zinc-800 hover:border-indigo-500/40 rounded-xl transition-all flex items-center justify-between"
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="p-2.5 bg-indigo-500/10 text-indigo-400 rounded-lg">
+                    <Briefcase className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-white">Active Cases</h4>
+                    <p className="text-xs text-zinc-500">Manage case investigations</p>
+                  </div>
+                </div>
+                <ArrowRight className="w-4 h-4 text-zinc-600" />
+              </Link>
+
+              <Link
+                to="/evidence"
+                className="p-4 bg-zinc-900/60 hover:bg-zinc-900 border border-zinc-800 hover:border-cyan-500/40 rounded-xl transition-all flex items-center justify-between"
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="p-2.5 bg-cyan-500/10 text-cyan-400 rounded-lg">
+                    <FolderLock className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-white">Evidence Vault</h4>
+                    <p className="text-xs text-zinc-500">Cryptographic artifact storage</p>
+                  </div>
+                </div>
+                <ArrowRight className="w-4 h-4 text-zinc-600" />
+              </Link>
+
+              <Link
+                to="/verify"
+                className="p-4 bg-zinc-900/60 hover:bg-zinc-900 border border-zinc-800 hover:border-emerald-500/40 rounded-xl transition-all flex items-center justify-between"
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="p-2.5 bg-emerald-500/10 text-emerald-400 rounded-lg">
+                    <CheckCircle className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-white">Public Verification</h4>
+                    <p className="text-xs text-zinc-500">On-chain SHA-256 validation</p>
+                  </div>
+                </div>
+                <ArrowRight className="w-4 h-4 text-zinc-600" />
+              </Link>
+            </div>
+          )}
 
           {/* Two-Column Telemetry View: Cases + Chain of Custody */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -438,7 +527,9 @@ export const Dashboard = () => {
               <div className="px-6 py-4 border-b border-zinc-800 flex justify-between items-center">
                 <div className="flex items-center space-x-2">
                   <Briefcase className="w-4 h-4 text-indigo-400" />
-                  <h3 className="text-sm font-semibold text-white">Active Case Roster</h3>
+                  <h3 className="text-sm font-semibold text-white">
+                    {isAdmin ? 'Case Oversight Registry' : 'Active Case Roster'}
+                  </h3>
                 </div>
                 <Link to="/cases" className="text-xs font-medium text-indigo-400 hover:text-indigo-300">
                   All Cases →

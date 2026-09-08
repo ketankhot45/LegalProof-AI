@@ -22,7 +22,7 @@ export const EvidenceList = ({ caseId, isAssignedInvestigator }: { caseId: strin
     .catch(() => setLoading(false));
   }, [caseId]);
 
-  const canUpload = user?.role === 'ADMIN' || (user?.role === 'INVESTIGATOR' && isAssignedInvestigator);
+  const canUpload = user?.role === 'INVESTIGATOR' && isAssignedInvestigator;
 
   return (
     <div id="digital-evidence-section" className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden flex flex-col shadow-sm">

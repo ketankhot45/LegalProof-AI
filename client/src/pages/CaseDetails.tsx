@@ -227,7 +227,9 @@ export const CaseDetails = () => {
     );
   }
 
-  const isAssignedInvestigator = user?.id === caseData.investigatorId || user?.role === 'ADMIN';
+  const isAdmin = user?.role === 'ADMIN';
+  const isAssignedInvestigator = user?.id === caseData.investigatorId;
+  const canManageStatus = isAssignedInvestigator || isAdmin;
   const myPendingRequest = caseData.assignmentRequests?.find(
     (r: any) => r.investigatorId === user?.id && r.status === 'PENDING'
   );
@@ -238,7 +240,7 @@ export const CaseDetails = () => {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
-      <Breadcrumbs items={[{ label: 'Cases', href: '/cases' }, { label: caseData.title }]} />
+      <Breadcrumbs items={[{ label: isAdmin ? 'Case Oversight' : 'Cases', href: '/cases' }, { label: caseData.title }]} />
 
       {/* Unassigned Case Workflow Notice Banner */}
       {!caseData.investigatorId && (
@@ -263,6 +265,15 @@ export const CaseDetails = () => {
               Request Assignment
             </button>
           )}
+          {isAdmin && (
+            <Link
+              to="/assignments"
+              className="inline-flex items-center justify-center px-3.5 py-2 min-h-[38px] bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold shrink-0 transition-colors shadow-sm"
+            >
+              <Shield className="w-3.5 h-3.5 mr-1.5" />
+              Review Assignment Queue
+            </Link>
+          )}
         </div>
       )}
 
@@ -271,7 +282,9 @@ export const CaseDetails = () => {
         <div className="flex items-center space-x-4">
           <div>
             <div className="flex flex-wrap items-center gap-2.5 mb-1">
-              <h2 className="text-xl font-semibold text-white tracking-tight">Case Operations</h2>
+              <h2 className="text-xl font-semibold text-white tracking-tight">
+                {isAdmin ? 'Case Oversight & Details' : 'Case Operations'}
+              </h2>
               <StatusBadge type="case" status={caseData.status} size="md" />
               <span className={`px-2 py-0.5 text-[10px] uppercase font-bold rounded border tracking-wide ${getPriorityBadge(caseData.priority)}`}>
                 {caseData.priority} Priority
@@ -284,7 +297,7 @@ export const CaseDetails = () => {
         </div>
         
         {/* Status Transition Selector (Only for assigned lead or admin) */}
-        {isAssignedInvestigator && (
+        {canManageStatus && (
           <div className="flex items-center space-x-2.5 bg-zinc-900 border border-zinc-800 px-3 py-1.5 rounded-xl self-start sm:self-auto shadow-sm">
             <label className="text-xs text-zinc-400 font-medium">Case Status:</label>
             <select 
