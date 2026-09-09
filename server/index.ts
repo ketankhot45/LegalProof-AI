@@ -121,6 +121,11 @@ async function startServer() {
   app.use('/api/v1/notifications', notificationRoutes);
   app.use('/api/v1', evidenceRoutes);
 
+  // 404 handler for unhandled API requests (prevents API routes from falling through to SPA HTML)
+  app.all('/api/*', (req, res) => {
+    res.status(404).json({ error: 'API endpoint not found' });
+  });
+
   // Vite Middleware for SPA and Dev
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
@@ -131,7 +136,7 @@ async function startServer() {
   } else {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
-    app.get('*all', (req, res) => {
+    app.get('*', (req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }

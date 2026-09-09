@@ -1,5 +1,4 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { Storage as GoogleCloudStorage } from '@google-cloud/storage';
 import fs from 'fs';
 import path from 'path';
 import { Readable } from 'stream';
@@ -8,9 +7,6 @@ import { Readable } from 'stream';
 const SUPABASE_URL = process.env.SUPABASE_URL || '';
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 const SUPABASE_BUCKET = process.env.SUPABASE_STORAGE_BUCKET || 'evidence-vault';
-
-// Google Cloud Storage Configuration (Secondary Backend Option)
-const GCS_BUCKET_NAME = process.env.EVIDENCE_STORAGE_BUCKET || '';
 
 // Local Fallback Configuration (Offline Local Dev Only)
 const LOCAL_UPLOADS_DIR = path.join(process.cwd(), 'uploads');
@@ -26,12 +22,6 @@ if (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
   });
 }
 
-// Initialize GCS Storage Client if configured
-let gcsStorage: GoogleCloudStorage | null = null;
-if (GCS_BUCKET_NAME) {
-  gcsStorage = new GoogleCloudStorage();
-}
-
 /**
  * Ensures the local uploads directory exists when using local fallback storage.
  */
@@ -44,9 +34,8 @@ function ensureLocalUploadsDir() {
 /**
  * Identifies the active storage backend.
  */
-export function getStorageBackendName(): 'supabase' | 'gcs' | 'local' {
+export function getStorageBackendName(): 'supabase' | 'local' {
   if (supabaseClient) return 'supabase';
-  if (gcsStorage && GCS_BUCKET_NAME) return 'gcs';
   return 'local';
 }
 
@@ -54,7 +43,7 @@ export function getStorageBackendName(): 'supabase' | 'gcs' | 'local' {
  * Checks if a persistent cloud storage backend is active.
  */
 export function isCloudStorageEnabled(): boolean {
-  return Boolean(supabaseClient || (GCS_BUCKET_NAME && gcsStorage));
+  return Boolean(supabaseClient);
 }
 
 /**
@@ -79,16 +68,6 @@ export async function saveEvidence(
     if (error) {
       throw new Error(`Failed to save evidence to Supabase Storage: ${error.message}`);
     }
-  } else if (backend === 'gcs' && gcsStorage) {
-    const bucket = gcsStorage.bucket(GCS_BUCKET_NAME);
-    const file = bucket.file(storageKey);
-    await file.save(buffer, {
-      contentType: mimeType,
-      resumable: false,
-      metadata: {
-        contentType: mimeType,
-      },
-    });
   } else {
     ensureLocalUploadsDir();
     const filePath = path.join(LOCAL_UPLOADS_DIR, storageKey);
@@ -115,19 +94,6 @@ export async function getEvidenceBuffer(storageKey: string): Promise<Buffer | nu
       return Buffer.from(arrayBuffer);
     } catch (error) {
       console.error(`Supabase getEvidenceBuffer error for key ${storageKey}:`, error);
-      return null;
-    }
-  } else if (backend === 'gcs' && gcsStorage) {
-    try {
-      const bucket = gcsStorage.bucket(GCS_BUCKET_NAME);
-      const file = bucket.file(storageKey);
-      const [exists] = await file.exists();
-      if (!exists) return null;
-
-      const [contents] = await file.download();
-      return contents;
-    } catch (error) {
-      console.error(`GCS getEvidenceBuffer error for key ${storageKey}:`, error);
       return null;
     }
   } else {
@@ -164,16 +130,6 @@ export async function evidenceExists(storageKey: string): Promise<boolean> {
       console.error(`Supabase evidenceExists error for key ${storageKey}:`, error);
       return false;
     }
-  } else if (backend === 'gcs' && gcsStorage) {
-    try {
-      const bucket = gcsStorage.bucket(GCS_BUCKET_NAME);
-      const file = bucket.file(storageKey);
-      const [exists] = await file.exists();
-      return exists;
-    } catch (error) {
-      console.error(`GCS evidenceExists error for key ${storageKey}:`, error);
-      return false;
-    }
   } else {
     ensureLocalUploadsDir();
     const filePath = path.join(LOCAL_UPLOADS_DIR, storageKey);
@@ -198,14 +154,6 @@ export async function deleteEvidence(storageKey: string): Promise<void> {
       }
     } catch (error) {
       console.error(`Supabase deleteEvidence error for key ${storageKey}:`, error);
-    }
-  } else if (backend === 'gcs' && gcsStorage) {
-    try {
-      const bucket = gcsStorage.bucket(GCS_BUCKET_NAME);
-      const file = bucket.file(storageKey);
-      await file.delete({ ignoreNotFound: true });
-    } catch (error) {
-      console.error(`GCS deleteEvidence error for key ${storageKey}:`, error);
     }
   } else {
     ensureLocalUploadsDir();
@@ -243,25 +191,6 @@ export async function getEvidenceStream(storageKey: string): Promise<{
       };
     } catch (error) {
       console.error(`Supabase getEvidenceStream error for key ${storageKey}:`, error);
-      return null;
-    }
-  } else if (backend === 'gcs' && gcsStorage) {
-    try {
-      const bucket = gcsStorage.bucket(GCS_BUCKET_NAME);
-      const file = bucket.file(storageKey);
-      const [exists] = await file.exists();
-      if (!exists) return null;
-
-      const [metadata] = await file.getMetadata();
-      const contentLength = metadata.size ? Number(metadata.size) : undefined;
-      const readStream = file.createReadStream();
-
-      return {
-        stream: readStream,
-        contentLength,
-      };
-    } catch (error) {
-      console.error(`GCS getEvidenceStream error for key ${storageKey}:`, error);
       return null;
     }
   } else {
