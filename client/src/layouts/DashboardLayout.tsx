@@ -154,16 +154,18 @@ export const DashboardLayout = () => {
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col md:flex-row">
       {/* Mobile Top Header */}
       <div className="md:hidden flex items-center justify-between px-4 h-16 bg-zinc-950 border-b border-zinc-800 z-30">
-        <Logo size="sm" />
-        <div className="flex items-center space-x-2">
-          <NotificationCenter />
+        <div className="flex items-center space-x-3">
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center p-2 text-zinc-400 hover:text-white rounded-lg bg-zinc-900 border border-zinc-800 transition-colors"
+            className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center p-2 text-zinc-400 hover:text-white rounded-lg bg-zinc-900 border border-zinc-800 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
             aria-label="Toggle navigation menu"
           >
             {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
+          <Logo size="sm" />
+        </div>
+        <div className="flex items-center">
+          <NotificationCenter />
         </div>
       </div>
 
@@ -301,7 +303,9 @@ export const DashboardLayout = () => {
               Evidence Integrity • Verified
             </span>
             <div className="h-4 w-[1px] bg-zinc-800 hidden sm:block"></div>
-            <NotificationCenter />
+            <div className="hidden md:block">
+              <NotificationCenter />
+            </div>
           </div>
         </header>
 

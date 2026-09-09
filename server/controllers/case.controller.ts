@@ -149,7 +149,7 @@ export const updateCase = async (req: AuthRequest, res: Response) => {
           type: 'CASE_STATUS_UPDATED',
           title: 'Case Status Update',
           message: `The status of case "${linkedCase.title}" was updated to ${validated.status.replace(/_/g, ' ')}.`,
-          link: `/cases/${id}`,
+          link: `/complaints/${linkedCase.complaint.id}`,
         });
       }
 
@@ -442,7 +442,7 @@ export const reviewAssignmentRequest = async (req: AuthRequest, res: Response) =
           type: 'CASE_ASSIGNED',
           title: 'Investigator Assigned to Case',
           message: `Lead Investigator ${request.investigator.name} has been assigned to your case dossier "${request.case.title}".`,
-          link: `/cases/${request.caseId}`,
+          link: `/complaints/${caseWithComplaint.complaint.id}`,
         });
       }
 

@@ -15,6 +15,7 @@ import {
   RefreshCw,
   Inbox
 } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 import { cn } from '../lib/utils';
 
 export interface NotificationItem {
@@ -28,6 +29,7 @@ export interface NotificationItem {
 }
 
 export const NotificationCenter: React.FC = () => {
+  const { user } = useAuth();
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [isOpen, setIsOpen] = useState<boolean>(false);
@@ -146,8 +148,15 @@ export const NotificationCenter: React.FC = () => {
       markAsRead(item.id);
     }
     setIsOpen(false);
-    if (item.link) {
-      navigate(item.link);
+    
+    let destination = item.link;
+    if (destination && user?.role === 'COMPLAINANT' && destination.startsWith('/cases/')) {
+      // Complainants cannot access raw case files directly; redirect to their dossier
+      destination = '/complaints';
+    }
+    
+    if (destination) {
+      navigate(destination);
     }
   };
 
@@ -246,7 +255,7 @@ export const NotificationCenter: React.FC = () => {
                   type="button"
                   onClick={markAllAsRead}
                   disabled={markingAll}
-                  className="inline-flex items-center px-2 py-1 rounded text-[11px] font-medium text-zinc-400 hover:text-indigo-300 hover:bg-zinc-800/80 transition-colors disabled:opacity-50"
+                  className="inline-flex min-h-[44px] items-center px-3 rounded text-[11px] font-medium text-zinc-400 hover:text-indigo-300 hover:bg-zinc-800/80 transition-colors disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                   title="Mark all notifications as read"
                 >
                   <CheckCheck className="w-3.5 h-3.5 mr-1" />
@@ -256,7 +265,7 @@ export const NotificationCenter: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="p-1 rounded text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
+                className="p-2 min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                 aria-label="Close notifications"
               >
                 <X className="w-4 h-4" />
@@ -265,12 +274,12 @@ export const NotificationCenter: React.FC = () => {
           </div>
 
           {/* Filter Pills */}
-          <div className="flex border-b border-zinc-800/80 bg-zinc-950/40 px-3 py-1.5 gap-2">
+          <div className="flex border-b border-zinc-800/80 bg-zinc-950/40 px-3 py-1.5 gap-2 overflow-x-auto">
             <button
               type="button"
               onClick={() => setFilter('all')}
               className={cn(
-                "px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors",
+                "px-3 min-h-[44px] inline-flex items-center justify-center rounded-md text-[11px] font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500/50 whitespace-nowrap",
                 filter === 'all' 
                   ? "bg-zinc-800 text-white font-semibold" 
                   : "text-zinc-400 hover:text-zinc-200"
@@ -282,7 +291,7 @@ export const NotificationCenter: React.FC = () => {
               type="button"
               onClick={() => setFilter('unread')}
               className={cn(
-                "px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors",
+                "px-3 min-h-[44px] inline-flex items-center justify-center rounded-md text-[11px] font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500/50 whitespace-nowrap",
                 filter === 'unread' 
                   ? "bg-zinc-800 text-white font-semibold" 
                   : "text-zinc-400 hover:text-zinc-200"
@@ -353,7 +362,7 @@ export const NotificationCenter: React.FC = () => {
                         <button
                           type="button"
                           onClick={(e) => markAsRead(item.id, e)}
-                          className="text-[10px] text-zinc-500 hover:text-zinc-300 px-1.5 py-0.5 rounded hover:bg-zinc-800"
+                          className="text-[11px] font-medium text-zinc-500 hover:text-zinc-300 min-h-[36px] min-w-[64px] px-2 rounded hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                           title="Mark as read"
                         >
                           Mark read

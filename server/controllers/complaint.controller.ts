@@ -281,7 +281,7 @@ export const reviewComplaint = async (req: AuthRequest, res: Response) => {
         type: 'COMPLAINT_ESCALATED',
         title: 'Complaint Escalated to Formal Case',
         message: `Your incident complaint "${complaint.title}" has been formally escalated to an active Case dossier.`,
-        link: `/cases/${newCase.id}`,
+        link: `/complaints/${complaint.id}`,
       });
 
       await notifyInvestigators({

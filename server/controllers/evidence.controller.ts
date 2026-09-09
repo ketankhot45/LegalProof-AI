@@ -418,7 +418,7 @@ export const anchorEvidenceController = async (req: AuthRequest, res: Response) 
         type: 'BLOCKCHAIN_ANCHOR_CONFIRMED',
         title: 'Evidence Secured On-Chain',
         message: `Evidence "${evidence.fileName}" has been cryptographically anchored to the public ledger.`,
-        link: `/cases/${evidence.caseId}`,
+        link: `/complaints/${linkedCase.complaint.id}`,
       });
     }
 
