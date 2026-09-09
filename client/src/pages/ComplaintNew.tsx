@@ -119,7 +119,7 @@ export const ComplaintNew = () => {
               minLength={5}
               value={title}
               onChange={e => setTitle(e.target.value)}
-              className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-zinc-100 placeholder-zinc-500 focus:border-indigo-500 focus:outline-none text-xs"
+              className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-zinc-100 placeholder-zinc-500 focus:border-indigo-500 focus:outline-none text-base sm:text-sm"
               placeholder="e.g. Unauthorized Account Access or Financial Fraud Alert"
             />
           </div>
@@ -129,7 +129,7 @@ export const ComplaintNew = () => {
             <select
               value={category}
               onChange={e => setCategory(e.target.value)}
-              className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-zinc-100 focus:border-indigo-500 focus:outline-none text-xs"
+              className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-zinc-100 focus:border-indigo-500 focus:outline-none text-base sm:text-sm"
             >
               <option value="CYBER_CRIME">Cyber Crime / Unauthorized Breach</option>
               <option value="FRAUD">Financial Fraud / Identity Theft</option>
@@ -147,7 +147,7 @@ export const ComplaintNew = () => {
               rows={6}
               value={description}
               onChange={e => setDescription(e.target.value)}
-              className="w-full rounded-lg border border-zinc-800 bg-zinc-950 p-3 text-zinc-100 placeholder-zinc-500 focus:border-indigo-500 focus:outline-none text-xs resize-none leading-relaxed"
+              className="w-full rounded-lg border border-zinc-800 bg-zinc-950 p-3 text-zinc-100 placeholder-zinc-500 focus:border-indigo-500 focus:outline-none text-base sm:text-sm resize-none leading-relaxed"
               placeholder="Provide an objective description of the incident: timeline, impacted systems, account identifiers, transactions, or involved third parties..."
             />
           </div>

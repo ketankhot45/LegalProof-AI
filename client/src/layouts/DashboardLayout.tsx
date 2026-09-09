@@ -159,7 +159,7 @@ export const DashboardLayout = () => {
           <NotificationCenter />
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="p-2 text-zinc-400 hover:text-white rounded-md bg-zinc-900 border border-zinc-800"
+            className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center p-2 text-zinc-400 hover:text-white rounded-lg bg-zinc-900 border border-zinc-800 transition-colors"
             aria-label="Toggle navigation menu"
           >
             {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -176,7 +176,11 @@ export const DashboardLayout = () => {
           >
             <div className="flex items-center justify-between pb-4 border-b border-zinc-800">
               <Logo size="sm" />
-              <button onClick={() => setMobileOpen(false)} className="p-1 text-zinc-400 hover:text-white">
+              <button 
+                onClick={() => setMobileOpen(false)} 
+                className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center p-2 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-900 transition-colors"
+                aria-label="Close navigation menu"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>

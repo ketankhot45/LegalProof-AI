@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#18181b"/>
+      <stop offset="100%" stop-color="#09090b"/>
+    </linearGradient>
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#4338ca"/>
+    </linearGradient>
+    <linearGradient id="innerGlow" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#818cf8" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#312e81" stop-opacity="0.05"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Outer Dark Container -->
+  <rect width="512" height="512" rx="120" fill="url(#bgGrad)"/>
+  <rect width="504" height="504" x="4" y="4" rx="116" fill="none" stroke="#27272a" stroke-width="4"/>
+  
+  <!-- Subtle Indigo Highlight Ring -->
+  <rect width="384" height="384" x="64" y="64" rx="88" fill="url(#innerGlow)" stroke="#4f46e5" stroke-width="4" stroke-opacity="0.35"/>
+  
+  <!-- Forensic Shield Symbol -->
+  <path d="M256 112 L372 160 V248 C372 328 256 392 256 392 C256 392 140 328 140 248 V160 Z" 
+        fill="url(#shieldGrad)" 
+        stroke="#818cf8" 
+        stroke-width="12" 
+        stroke-linejoin="round"/>
+        
+  <!-- Inner Shield Core -->
+  <path d="M256 148 L344 184 V248 C344 310 256 360 256 360 C256 360 168 310 168 248 V184 Z" 
+        fill="#1e1b4b" 
+        fill-opacity="0.75"/>
+        
+  <!-- Cryptographic Integrity Checkmark -->
+  <path d="M216 252 L244 280 L298 220" 
+        fill="none" 
+        stroke="#f8fafc" 
+        stroke-width="18" 
+        stroke-linecap="round" 
+        stroke-linejoin="round"/>
+</svg>

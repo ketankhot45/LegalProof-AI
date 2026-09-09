@@ -204,7 +204,7 @@ export const NotificationCenter: React.FC = () => {
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "relative p-2 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500/50",
+          "relative min-h-[44px] min-w-[44px] inline-flex items-center justify-center p-2 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500/50",
           isOpen 
             ? "bg-zinc-800 text-white" 
             : "text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900"
@@ -214,7 +214,7 @@ export const NotificationCenter: React.FC = () => {
       >
         <Bell className="w-5 h-5" />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-indigo-600 px-1 text-[10px] font-bold text-white shadow-sm ring-2 ring-zinc-950 animate-pulse">
+          <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-indigo-600 px-1 text-[10px] font-bold text-white shadow-sm ring-2 ring-zinc-950 animate-pulse">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
@@ -223,7 +223,7 @@ export const NotificationCenter: React.FC = () => {
       {/* Popover Menu */}
       {isOpen && (
         <div 
-          className="absolute right-0 mt-2 w-80 sm:w-96 rounded-xl border border-zinc-800 bg-zinc-900/95 shadow-2xl backdrop-blur-md z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150"
+          className="absolute right-0 mt-2 w-80 sm:w-96 max-w-[calc(100vw-24px)] rounded-xl border border-zinc-800 bg-zinc-900/95 shadow-2xl backdrop-blur-md z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150"
           role="dialog"
           aria-label="Notification center"
         >

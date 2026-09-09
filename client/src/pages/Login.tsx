@@ -228,7 +228,7 @@ export const Login = () => {
                   activeRole === 'COMPLAINANT' ? 'citizen@domain.com' :
                   activeRole === 'INVESTIGATOR' ? 'detective@agency.gov' : 'admin@agency.gov'
                 }
-                className="block w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-zinc-100 placeholder-zinc-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 text-xs"
+                className="block w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-zinc-100 placeholder-zinc-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 text-base sm:text-sm"
               />
             </div>
 
@@ -250,7 +250,7 @@ export const Login = () => {
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 placeholder="Enter account password"
-                className="block w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-zinc-100 placeholder-zinc-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 text-xs"
+                className="block w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-zinc-100 placeholder-zinc-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 text-base sm:text-sm"
               />
             </div>
 
@@ -258,7 +258,7 @@ export const Login = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex items-center justify-center py-2.5 px-4 rounded-xl text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-zinc-900 transition-colors disabled:opacity-50 shadow-md"
+                className="w-full flex items-center justify-center min-h-[44px] py-2.5 px-4 rounded-xl text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-zinc-900 transition-colors disabled:opacity-50 shadow-md"
               >
                 {loading ? 'Authenticating Role...' : `Sign in to ${activeRole === 'COMPLAINANT' ? 'Citizen Portal' : activeRole === 'INVESTIGATOR' ? 'Investigator Portal' : 'Admin Console'}`}
               </button>
