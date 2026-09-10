@@ -94,15 +94,15 @@ export const Login = () => {
 
   const roleMeta: Record<RoleType, { title: string; subtitle: string; icon: any; color: string; badge: string }> = {
     COMPLAINANT: {
-      title: 'Complainant Incident Portal',
-      subtitle: 'Citizen access to submit incident reports, attach supporting proof, and monitor progress.',
+      title: 'Complainant Portal',
+      subtitle: 'Secure complaint submission and status tracking.',
       icon: User,
       color: 'text-blue-400',
       badge: 'Public Intake'
     },
     INVESTIGATOR: {
-      title: 'Forensic Investigator Portal',
-      subtitle: 'Law enforcement & forensic workspace for case review, assignment requests, and evidence handling.',
+      title: 'Investigator Portal',
+      subtitle: 'Authorized workspace for complaint triage, case investigation, evidence handling, and verification.',
       icon: Briefcase,
       color: 'text-indigo-400',
       badge: 'Authorized Personnel'

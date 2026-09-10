@@ -14,7 +14,7 @@ Overview • Features • Architecture • Workflow • Security • Setup • T
 
 ## Live Demo
 
-**Deployment URL:** [https://ais-pre-oubsywdux7hmyo4fvywu24-496022563387.asia-southeast1.run.app](https://ais-pre-oubsywdux7hmyo4fvywu24-496022563387.asia-southeast1.run.app)  
+**Deployment URL:** [https://legalproof.ai.studio](https://legalproof.ai.studio)  
 *(Please note: Demo instances may have restricted administrative features and temporary data persistence).*
 
 ---
@@ -81,7 +81,7 @@ LegalProof AI ensures that every piece of digital evidence is verified, securely
 8. **AI Analysis:** Authorized investigators run AI-assisted analyses on evidence.
 9. **Anchoring:** Evidence hashes are securely anchored to the Polygon Amoy blockchain.
 10. **Verification:** Public users can independently verify the hash against the blockchain.
-11. **Audit:** Every critical action is recorded in the immutable chain-of-custody logs.
+11. **Audit:** Every critical action is recorded in the auditable chain-of-custody records with restricted modification paths.
 
 ---
 
@@ -131,7 +131,7 @@ graph TD
 
 | Category | Technologies |
 |----------|--------------|
-| **Frontend** | React 19, TypeScript, Vite, Tailwind CSS, shadcn/ui, framer-motion |
+| **Frontend** | React 19, TypeScript, Vite, Tailwind CSS, shadcn/ui, motion |
 | **Backend** | Node.js, Express, TypeScript |
 | **Database** | PostgreSQL, Prisma ORM |
 | **Storage** | Supabase Storage |

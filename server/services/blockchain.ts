@@ -200,7 +200,7 @@ export async function anchorEvidenceOnBlockchain(
       }
     });
 
-    // 7. Record immutable Audit and Chain of Custody logs
+    // 7. Record Audit and Chain of Custody logs
     await prisma.auditLog.create({
       data: {
         userId,
