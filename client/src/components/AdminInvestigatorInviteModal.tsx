@@ -82,7 +82,7 @@ export const AdminInvestigatorInviteModal: React.FC<Props> = ({ isOpen, onClose,
               <UserPlus className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-semibold text-white">Invite Forensic Investigator</h3>
+              <h3 className="text-base font-semibold text-white">Invite Investigator</h3>
               <p className="text-xs text-zinc-400">Administrative account provisioning</p>
             </div>
           </div>
@@ -173,13 +173,13 @@ export const AdminInvestigatorInviteModal: React.FC<Props> = ({ isOpen, onClose,
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="m.vance@forensics.agency.gov"
+                placeholder="m.vance@investigation.agency.gov"
                 className="block w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-zinc-100 placeholder-zinc-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 text-xs"
               />
             </div>
 
             <p className="text-[11px] text-zinc-500 leading-relaxed">
-              Upon dispatch, a single-use cryptographically hashed activation token will be generated. The invitee will receive instructions to set their master password and activate their forensic workspace.
+              Upon dispatch, a single-use cryptographically hashed activation token will be generated. The invitee will receive instructions to set their master password and activate their secure workspace.
             </p>
 
             <div className="pt-2 flex items-center justify-end space-x-2">

@@ -185,18 +185,18 @@ export async function sendInvestigatorInvitationEmail(email: string, name: strin
       <div class="container">
         <div class="header">
           <div class="badge">Authorized Personnel</div>
-          <h1 class="title">Forensic Investigator Workspace Invitation</h1>
+          <h1 class="title">Investigator Workspace Invitation</h1>
         </div>
         <p class="text">Hello ${escapeHtml(name)},</p>
-        <p class="text">An administrator has authorized and provisioned a <strong>Forensic Investigator</strong> account for you on the LegalProof AI platform.</p>
-        <p class="text">To complete your onboarding and activate your forensic credentials, click the button below to establish your secure access password.</p>
+        <p class="text">An administrator has authorized and provisioned an <strong>Investigator</strong> account for you on the LegalProof AI platform.</p>
+        <p class="text">To complete your onboarding and activate your secure credentials, click the button below to establish your access password.</p>
         <div class="button-wrap">
           <a href="${activateUrl}" class="button" target="_blank">Activate Investigator Account</a>
         </div>
         <p class="text">This invitation token is single-use and will expire in 48 hours.</p>
         <p class="link-text">${activateUrl}</p>
         <div class="footer">
-          <p>LegalProof AI • Law Enforcement & Forensic Chain-of-Custody Portal</p>
+          <p>LegalProof AI • Secure Digital Evidence & Case Management</p>
         </div>
       </div>
     </body>
@@ -205,7 +205,7 @@ export async function sendInvestigatorInvitationEmail(email: string, name: strin
 
   return sendEmail({
     to: email,
-    subject: 'Official Invitation: LegalProof AI Forensic Investigator Account',
+    subject: 'Official Invitation: LegalProof AI Investigator Account',
     html,
   });
 }

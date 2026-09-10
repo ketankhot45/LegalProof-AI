@@ -90,7 +90,7 @@ export const InvestigatorRoster = () => {
             Investigator Directory
           </h1>
           <p className="text-sm text-zinc-400 mt-1">
-            Manage forensic personnel, inspect active caseloads, and monitor department invitations.
+            Manage investigator personnel, inspect active caseloads, and monitor department invitations.
           </p>
         </div>
 

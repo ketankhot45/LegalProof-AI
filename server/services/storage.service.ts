@@ -77,7 +77,7 @@ export async function saveEvidence(
 
 /**
  * Retrieves the full evidence file as a Buffer from storage.
- * Used for server-side AI OCR and forensic analysis.
+ * Used for server-side AI OCR and investigative analysis.
  * Returns null if the file does not exist in storage.
  */
 export async function getEvidenceBuffer(storageKey: string): Promise<Buffer | null> {

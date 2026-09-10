@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { StatusBadge } from '../components/StatusBadge';
 import { HashDisplay } from '../components/HashDisplay';
+import { ReferenceDisplay } from '../components/ReferenceDisplay';
 
 type QuickFilter = 'ALL' | 'ASSIGNED_TO_ME' | 'UNASSIGNED' | 'ASSIGNED';
 
@@ -483,7 +484,7 @@ export const CasesList = () => {
                           {c.title}
                         </Link>
                         <div className="mt-1">
-                          <HashDisplay hash={c.id} truncate="short" size="xs" variant="inline" label="Ref" />
+                          <ReferenceDisplay reference={c.id} label="Ref" />
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -557,7 +558,7 @@ export const CasesList = () => {
                         {c.title}
                       </Link>
                       <div className="mt-1">
-                        <HashDisplay hash={c.id} truncate="short" size="xs" variant="inline" label="Ref" />
+                        <ReferenceDisplay reference={c.id} label="Ref" />
                       </div>
                     </div>
                     <span className={`px-2 py-0.5 text-[11px] rounded-md border shrink-0 ${getPriorityBadge(c.priority)}`}>

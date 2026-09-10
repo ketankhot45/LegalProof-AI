@@ -84,7 +84,7 @@ function detectDangerousSignatures(buffer: Buffer): string | null {
 }
 
 /**
- * Validates text-based forensic files (CSV, TXT, JSON, LOG)
+ * Validates text-based evidence files (CSV, TXT, JSON, LOG)
  */
 function validateTextFile(buffer: Buffer, ext: string): FileValidationResult {
   // Check if buffer is valid text (no binary null bytes or excessive non-printable control chars)

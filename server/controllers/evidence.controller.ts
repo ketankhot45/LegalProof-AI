@@ -518,7 +518,7 @@ export const analyzeEvidenceController = async (req: AuthRequest, res: Response)
         userId: evidence.case.investigatorId,
         type: 'AI_ANALYSIS_COMPLETED',
         title: 'AI Analysis Completed',
-        message: `AI Forensic Analysis completed for evidence "${evidence.fileName}".`,
+        message: `AI Evidence Analysis completed for evidence "${evidence.fileName}".`,
         link: `/cases/${evidence.caseId}`,
       });
     }

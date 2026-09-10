@@ -26,6 +26,7 @@ import { StatusBadge } from '../components/StatusBadge';
 import { useFeedback } from '../contexts/FeedbackContext';
 import { Breadcrumbs } from '../components/Breadcrumbs';
 import { HashDisplay } from '../components/HashDisplay';
+import { ReferenceDisplay } from '../components/ReferenceDisplay';
 
 export const CaseDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -291,7 +292,7 @@ export const CaseDetails = () => {
               </span>
             </div>
             <div className="mt-1">
-              <HashDisplay hash={caseData.id} truncate="middle" size="xs" variant="badge" label="Case Ref" />
+              <ReferenceDisplay reference={caseData.id} label="Case Ref" />
             </div>
           </div>
         </div>
@@ -336,7 +337,7 @@ export const CaseDetails = () => {
                     <div className="text-[11px] uppercase tracking-wider text-indigo-400 font-semibold">Origin Complaint</div>
                     <div className="font-medium text-white truncate">{caseData.complaint.title}</div>
                     <div className="mt-0.5">
-                      <HashDisplay hash={caseData.complaint.id} truncate="short" size="xs" variant="inline" label="ID" />
+                      <ReferenceDisplay reference={caseData.complaint.id} label="Complaint ID" />
                     </div>
                   </div>
                 </div>

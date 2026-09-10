@@ -699,7 +699,7 @@ export const activateInvestigator = async (req: Request, res: Response) => {
       data: {
         userId: user.id,
         action: 'INVESTIGATOR_ACTIVATED',
-        details: `Forensic investigator account activated for ${user.email}.`,
+        details: `Investigator account activated for ${user.email}.`,
         ipAddress: req.ip,
       },
     }).catch(() => {});

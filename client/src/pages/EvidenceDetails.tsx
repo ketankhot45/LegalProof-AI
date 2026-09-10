@@ -741,7 +741,7 @@ export const EvidenceDetails = () => {
                   <div className="space-y-1.5 max-w-md mx-auto">
                     <h4 className="text-sm font-bold text-white">In-Browser Preview Not Supported</h4>
                     <p className="text-xs text-zinc-400 leading-relaxed">
-                      This file format (<span className="text-zinc-200 font-mono">{evidence.mimeType}</span>) is a binary or proprietary container. Download the raw forensic package to inspect locally in specialized forensic software.
+                      This file format (<span className="text-zinc-200 font-mono">{evidence.mimeType}</span>) is a binary or proprietary container. Download the raw evidence package to inspect locally in specialized software.
                     </p>
                   </div>
                   <div className="pt-2">
@@ -1162,7 +1162,7 @@ export const EvidenceDetails = () => {
             )}
             
             <p className="text-[10px] text-zinc-500 leading-relaxed">
-              Forensic Note: SHA-256 hashing guarantees mathematical non-repudiation and byte integrity from the moment of intake.
+              Security Note: SHA-256 hashing guarantees mathematical non-repudiation and byte integrity from the moment of intake.
             </p>
           </div>
 

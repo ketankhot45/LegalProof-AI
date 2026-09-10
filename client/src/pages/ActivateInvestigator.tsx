@@ -63,12 +63,12 @@ export const ActivateInvestigator = () => {
     <div className="min-h-screen bg-zinc-950 flex flex-col justify-between">
       <div className="flex-1 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md flex flex-col items-center">
-          <Logo size="lg" showSubtitle subtitleText="Authorized Forensic Personnel Onboarding" />
+          <Logo size="lg" showSubtitle subtitleText="Authorized Investigator Onboarding" />
           <h2 className="text-xl font-bold tracking-tight text-white text-center mt-4">
             Investigator Account Activation
           </h2>
           <p className="mt-1 text-xs text-zinc-400 text-center">
-            Establish your master password to access the forensic custody workspace
+            Establish your master password to access the secure investigation workspace
           </p>
         </div>
 

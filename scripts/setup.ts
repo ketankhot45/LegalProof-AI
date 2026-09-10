@@ -35,7 +35,8 @@ async function main() {
   const nodeVersion = process.version;
   const majorVersion = parseInt(nodeVersion.replace('v', '').split('.')[0], 10);
   if (majorVersion < 18) {
-    warn(`You are using Node.js ${nodeVersion}. Node.js 18 or higher is recommended.`);
+    console.error(`\x1b[31m✖ Error: You are using Node.js ${nodeVersion}. Node.js 18 or higher is explicitly required.\x1b[0m`);
+    process.exit(1);
   } else {
     success(`Node.js version is compatible (${nodeVersion}).`);
   }

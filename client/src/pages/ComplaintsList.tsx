@@ -14,6 +14,8 @@ import {
 } from 'lucide-react';
 import { StatusBadge } from '../components/StatusBadge';
 import { HashDisplay } from '../components/HashDisplay';
+import { ReferenceDisplay } from '../components/ReferenceDisplay';
+import { formatCategory } from '../lib/categories';
 
 export const ComplaintsList = () => {
   const { user } = useAuth();
@@ -265,12 +267,12 @@ export const ComplaintsList = () => {
                             {c.title}
                           </Link>
                           <div className="mt-1">
-                            <HashDisplay hash={c.id} truncate="short" size="xs" variant="inline" label="Ref" />
+                            <ReferenceDisplay reference={c.id} label="Ref" />
                           </div>
                         </td>
                         <td className="px-6 py-4 text-xs whitespace-nowrap">
                           <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-zinc-800 text-zinc-300 border border-zinc-700/60">
-                            {c.category || 'General'}
+                            {formatCategory(c.category)}
                           </span>
                         </td>
                         <td className="px-6 py-4 text-xs text-zinc-300 whitespace-nowrap truncate max-w-[150px]">
@@ -313,11 +315,11 @@ export const ComplaintsList = () => {
                           {c.title}
                         </Link>
                         <div className="mt-1">
-                          <HashDisplay hash={c.id} truncate="short" size="xs" variant="inline" label="Ref" />
+                          <ReferenceDisplay reference={c.id} label="Ref" />
                         </div>
                       </div>
                       <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-zinc-800 text-zinc-300 border border-zinc-700/60 shrink-0">
-                        {c.category || 'General'}
+                        {formatCategory(c.category)}
                       </span>
                     </div>
 

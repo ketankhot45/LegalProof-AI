@@ -5,6 +5,7 @@ import { useFeedback } from '../contexts/FeedbackContext';
 import { ClipboardList, ShieldAlert, CheckCircle, XCircle, ArrowRight, User, RefreshCw, X, AlertCircle } from 'lucide-react';
 import { Breadcrumbs } from '../components/Breadcrumbs';
 import { HashDisplay } from '../components/HashDisplay';
+import { ReferenceDisplay } from '../components/ReferenceDisplay';
 
 export const AdminAssignmentQueue = () => {
   const { user, token } = useAuth();
@@ -201,7 +202,7 @@ export const AdminAssignmentQueue = () => {
                 <div>
                   <h3 className="text-base font-semibold text-white">{req.case?.title || 'Untitled Case'}</h3>
                   <div className="mt-1">
-                    <HashDisplay hash={req.caseId} truncate="short" size="xs" variant="inline" label="Case ID" />
+                    <ReferenceDisplay reference={req.caseId} label="Case ID" />
                   </div>
                 </div>
 

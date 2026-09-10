@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router';
 import { useAuth } from '../contexts/AuthContext';
+import { formatCategory } from '../lib/categories';
 import { 
   ArrowLeft, 
   CheckCircle, 
@@ -216,7 +217,7 @@ export const ComplaintDetails = () => {
               <h3 className="text-xl font-semibold text-white mb-2 break-words">{complaint.title}</h3>
               <div className="text-xs text-zinc-400 flex items-center space-x-2">
                 <Tag className="w-3.5 h-3.5 text-zinc-500" />
-                <span>Category: <strong className="text-zinc-200">{complaint.category || 'General Incident'}</strong></span>
+                <span>Category: <strong className="text-zinc-200">{formatCategory(complaint.category)}</strong></span>
               </div>
             </div>
             
@@ -334,7 +335,7 @@ export const ComplaintDetails = () => {
             <dl className="space-y-4 text-xs">
               <div>
                 <dt className="text-zinc-500">Category</dt>
-                <dd className="mt-1 font-medium text-zinc-200">{complaint.category || 'General Incident'}</dd>
+                <dd className="mt-1 font-medium text-zinc-200">{formatCategory(complaint.category)}</dd>
               </div>
               <div>
                 <dt className="text-zinc-500">Official Priority Level</dt>

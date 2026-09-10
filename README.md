@@ -44,7 +44,7 @@ LegalProof AI ensures that every piece of digital evidence is verified, securely
 - SHA-256 cryptographic hashing upon upload
 - File type and magic-byte validation
 - Secure, private evidence storage via Supabase Storage
-- Immutably recorded chain-of-custody logs
+- Auditable chain-of-custody records with restricted modification paths
 - Evidence lifecycle and verification controls
 
 ### AI-Assisted Investigation
@@ -103,7 +103,7 @@ LegalProof AI implements a defense-in-depth approach:
 - **Validation:** Zod schemas validate all inbound API requests.
 - **Network Security:** Helmet secures HTTP headers, express-rate-limit prevents abuse, and strict CORS policies control cross-origin requests.
 - **Storage:** Sensitive evidence is stored in private Supabase Storage buckets, heavily restricted from public access.
-- **Integrity:** SHA-256 hashing guarantees evidence hasn't been tampered with since upload.
+- **Integrity:** SHA-256 hashing enables the system to detect changes by comparing the current file hash with its recorded reference hash.
 
 ---
 
@@ -147,7 +147,7 @@ graph TD
 legalproof-ai/
 ├── client/           # React frontend (Vite, Tailwind, Pages, Components)
 ├── server/           # Express backend (Controllers, Routes, Middleware, Services)
-├── prisma/           # Database schema and migrations
+├── prisma/           # Active Prisma database schema
 ├── blockchain/       # Hardhat project for smart contracts
 ├── scripts/          # Helper scripts (Setup, Seeding)
 ├── .env.example      # Environment variable template
@@ -194,15 +194,27 @@ npm run dev
 | Variable | Description | Required |
 |----------|-------------|----------|
 | `NODE_ENV` | Environment mode (`development` or `production`) | Yes |
+| `APP_BASE_URL` | Base URL of the application (e.g. `http://localhost:3000` or `https://legalproof.ai.studio`) | Yes |
+| `ALLOWED_ORIGINS` | Comma-separated list of allowed CORS origins | Yes (Production) |
 | `DATABASE_URL` | PostgreSQL connection string | Yes |
 | `JWT_SECRET` | Secret key for signing JWT tokens | Yes |
+| `SMTP_HOST` | SMTP server host | Yes (Email) |
+| `SMTP_PORT` | SMTP server port | Yes (Email) |
+| `SMTP_USER` | SMTP username | Yes (Email) |
+| `SMTP_PASS` | SMTP password | Yes (Email) |
+| `SMTP_FROM` | Sender email address | Yes (Email) |
 | `GEMINI_API_KEY` | Google Gemini API Key for AI Analysis | Optional* |
 | `BLOCKCHAIN_RPC_URL` | RPC URL for Polygon Amoy | Optional* |
 | `BLOCKCHAIN_PRIVATE_KEY` | Wallet Private Key for anchoring | Optional* |
+| `BLOCKCHAIN_CONTRACT_ADDRESS` | Address of the deployed smart contract | Optional* |
 | `SUPABASE_URL` | Supabase Project URL | Optional* |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase Service Role Key | Optional* |
+| `SUPABASE_STORAGE_BUCKET` | Supabase Storage bucket name (e.g. `evidence-vault`) | Optional* |
+| `ADMIN_EMAIL` | Admin email for provisioning script | Optional* |
+| `ADMIN_PASSWORD` | Admin password for provisioning script | Optional* |
+| `ADMIN_NAME` | Admin name for provisioning script | Optional* |
 
-*\*Optional depending on which features (AI, Blockchain, Storage) you are testing locally.*
+*\*Optional depending on which features (AI, Blockchain, Storage) you are testing locally. Production secrets must be supplied through the deployment environment. Real credentials should never be exposed in `.env.example` or the repository.*
 
 ---
 
@@ -229,7 +241,7 @@ LegalProof AI is designed for containerized deployment (e.g., Google Cloud Run, 
 ## Sustainable Development Goal Alignment
 
 ### SDG 16 — Peace, Justice and Strong Institutions
-LegalProof AI aligns with SDG 16 by promoting accountable digital complaint handling and transparent evidence workflows. The platform ensures that critical evidence is securely stored, immutably tracked, and responsibly analyzed, thereby supporting the establishment of effective, accountable, and transparent institutions.
+LegalProof AI aligns with SDG 16 by promoting accountable digital complaint handling and transparent evidence workflows. The platform ensures that critical evidence is securely stored, transparently tracked, and responsibly analyzed, thereby supporting the establishment of effective, accountable, and transparent institutions.
 
 ---
 

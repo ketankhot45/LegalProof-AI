@@ -15,7 +15,7 @@ export const Logo: React.FC<LogoProps> = ({
   size = 'md',
   showText = true,
   showSubtitle = false,
-  subtitleText = 'Digital Forensics & Integrity Verification',
+  subtitleText = 'Digital Evidence & Integrity Verification',
   className,
 }) => {
   const iconSizes = {

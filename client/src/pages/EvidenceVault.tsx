@@ -211,7 +211,7 @@ export const EvidenceVault = () => {
           <div className="flex items-center space-x-3">
             <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">Evidence Vault</h2>
             <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full border border-indigo-500/30 bg-indigo-500/10 text-indigo-400">
-              Forensic Registry
+              Evidence Registry
             </span>
           </div>
           <p className="text-xs sm:text-sm text-zinc-400 mt-1">
@@ -612,7 +612,7 @@ export const EvidenceVault = () => {
             ) : (
               <div className="space-y-4 pt-2 text-center overflow-y-auto flex-1">
                 <p className="text-xs text-zinc-400">
-                  You are not currently assigned to any active investigation cases. You must be assigned as the lead investigator on a case before uploading forensic evidence.
+                  You are not currently assigned to any active investigation cases. You must be assigned as the lead investigator on a case before uploading evidence.
                 </p>
                 <div className="pt-2">
                   <button

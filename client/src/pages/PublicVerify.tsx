@@ -648,7 +648,7 @@ export const PublicVerify = () => {
             <div className="p-4 sm:p-5 bg-zinc-900/60 border border-zinc-800 rounded-xl text-xs text-zinc-400 leading-relaxed space-y-1">
               <span className="font-semibold text-zinc-300 block">Legal & Chain-of-Custody Notice</span>
               <p>
-                Blockchain anchoring independently validates that this exact 256-bit cryptographic digest existed at the specified block timestamp. On-chain records provide proof of non-tampering from the moment of registration, but do not replace comprehensive chain-of-custody documentation or forensic certification.
+                Blockchain anchoring independently validates that this exact 256-bit cryptographic digest existed at the specified block timestamp. On-chain records provide proof of non-tampering from the moment of registration, but do not replace comprehensive chain-of-custody documentation or official certification.
               </p>
             </div>
           </div>

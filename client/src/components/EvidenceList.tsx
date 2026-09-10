@@ -38,7 +38,7 @@ export const EvidenceList = ({ caseId, isAssignedInvestigator }: { caseId: strin
                 {evidence.length} artifact{evidence.length === 1 ? '' : 's'}
               </span>
             </div>
-            <p className="text-[11px] text-zinc-400 mt-0.5">Cryptographically hashed forensic files associated with this investigation</p>
+            <p className="text-[11px] text-zinc-400 mt-0.5">Cryptographically hashed evidence files associated with this investigation</p>
           </div>
         </div>
         {canUpload && (

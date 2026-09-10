@@ -108,7 +108,7 @@ export const getStatusConfig = (rawStatus: string): StatusConfig => {
         className: 'bg-blue-500/10 text-blue-400 border-blue-500/25',
         dotColor: 'bg-blue-400',
         icon: CheckCircle2,
-        description: 'Lead forensic investigator officially assigned.',
+        description: 'Lead investigator officially assigned.',
       };
     case 'ACTIVE_INVESTIGATION':
       return {

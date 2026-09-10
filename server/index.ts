@@ -71,8 +71,19 @@ async function startServer() {
         })
       );
     } else {
-      // Default to standard origin handling when no external origins specified
-      app.use(cors());
+      // Default to strict same-origin handling when no external origins specified
+      app.use(
+        cors({
+          origin: (origin, callback) => {
+            if (!origin) {
+              callback(null, true);
+            } else {
+              callback(new Error('CORS policy: Origin not allowed (missing ALLOWED_ORIGINS configuration)'));
+            }
+          },
+          credentials: true,
+        })
+      );
     }
   }
   app.use(express.json());

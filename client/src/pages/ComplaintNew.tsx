@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router';
 import { ArrowLeft, Send, AlertCircle, Upload, Paperclip, X, FileText, Info } from 'lucide-react';
 import { useFeedback } from '../contexts/FeedbackContext';
 import { apiFetch } from '../lib/api';
+import { INCIDENT_CATEGORIES } from '../lib/categories';
 
 export const ComplaintNew = () => {
   const [title, setTitle] = useState('');
@@ -131,11 +132,9 @@ export const ComplaintNew = () => {
               onChange={e => setCategory(e.target.value)}
               className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-zinc-100 focus:border-indigo-500 focus:outline-none text-base sm:text-sm"
             >
-              <option value="CYBER_CRIME">Cyber Crime / Unauthorized Breach</option>
-              <option value="FRAUD">Financial Fraud / Identity Theft</option>
-              <option value="HARASSMENT">Online Harassment / Extortion</option>
-              <option value="DATA_THEFT">Data Leak / IP Compromise</option>
-              <option value="OTHER">Other Incident</option>
+              {INCIDENT_CATEGORIES.map(cat => (
+                <option key={cat.value} value={cat.value}>{cat.label}</option>
+              ))}
             </select>
           </div>
 
