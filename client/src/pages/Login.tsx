@@ -102,14 +102,14 @@ export const Login = () => {
     },
     INVESTIGATOR: {
       title: 'Investigator Portal',
-      subtitle: 'Authorized workspace for complaint triage, case investigation, evidence handling, and verification.',
+      subtitle: 'Review complaints, manage assigned cases, and securely handle verified evidence.',
       icon: Briefcase,
       color: 'text-indigo-400',
       badge: 'Authorized Personnel'
     },
     ADMIN: {
       title: 'System Administration Console',
-      subtitle: 'Administrative oversight for incident triage, case assignments approval, and audit logs.',
+      subtitle: 'Oversee investigations, manage assignments, monitor system activity, and maintain platform security.',
       icon: KeyRound,
       color: 'text-amber-400',
       badge: 'Admin Security'
@@ -173,8 +173,8 @@ export const Login = () => {
           </div>
 
           {/* Active Portal Header */}
-          <div className="p-3.5 bg-zinc-950/60 rounded-xl border border-zinc-800/80">
-            <div className="flex items-center justify-between mb-1">
+          <div className="p-3.5 bg-zinc-950/60 rounded-xl border border-zinc-800/80 h-[116px] sm:h-[96px] flex flex-col justify-center">
+            <div className="flex items-center justify-between mb-1.5">
               <span className="text-xs font-semibold text-white flex items-center">
                 <activeMeta.icon className={`w-3.5 h-3.5 mr-1.5 ${activeMeta.color}`} />
                 {activeMeta.title}
@@ -266,19 +266,21 @@ export const Login = () => {
           </form>
 
           {/* Registration / Policy Notice */}
-          <div className="pt-2 border-t border-zinc-800/80 text-center text-xs text-zinc-400">
-            {activeRole === 'COMPLAINANT' ? (
-              <div>
-                <span>Need to submit an incident report? </span>
-                <Link to="/register" className="font-medium text-indigo-400 hover:text-indigo-300 transition-colors">
-                  Create citizen account
-                </Link>
-              </div>
-            ) : (
-              <p className="text-[11px] text-zinc-500 leading-normal">
-                Departmental access only. Investigator accounts are provisioned via secure administrator invitation.
-              </p>
-            )}
+          <div className="border-t border-zinc-800/80">
+            <div className="h-[72px] sm:h-[56px] flex flex-col justify-center text-center text-xs text-zinc-400 px-2">
+              {activeRole === 'COMPLAINANT' ? (
+                <div>
+                  <span className="block sm:inline">Need to submit an incident report? </span>
+                  <Link to="/register" className="font-medium text-indigo-400 hover:text-indigo-300 transition-colors">
+                    Create citizen account
+                  </Link>
+                </div>
+              ) : (
+                <p className="text-[11px] text-zinc-500 leading-normal">
+                  Departmental access only. Investigator accounts are provisioned via secure administrator invitation.
+                </p>
+              )}
+            </div>
           </div>
         </div>
       </div>

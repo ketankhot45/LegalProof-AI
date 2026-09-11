@@ -22,6 +22,8 @@ import { Logo } from '../components/Logo';
 import { Footer } from '../components/Footer';
 import { NotificationCenter } from '../components/NotificationCenter';
 
+import { playClickSound } from '../lib/audio';
+
 export const DashboardLayout = () => {
   const { user, logout, loading } = useAuth();
   const location = useLocation();
@@ -156,7 +158,10 @@ export const DashboardLayout = () => {
       <div className="md:hidden flex items-center justify-between px-4 h-16 bg-zinc-950 border-b border-zinc-800 z-30">
         <div className="flex items-center space-x-3">
           <button
-            onClick={() => setMobileOpen(!mobileOpen)}
+            onClick={() => {
+              playClickSound();
+              setMobileOpen(!mobileOpen);
+            }}
             className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center p-2 text-zinc-400 hover:text-white rounded-lg bg-zinc-900 border border-zinc-800 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
             aria-label="Toggle navigation menu"
           >

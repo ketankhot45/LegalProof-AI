@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { cn } from '../lib/utils';
+import { playClickSound } from '../lib/audio';
 
 export interface NotificationItem {
   id: string;
@@ -211,7 +212,10 @@ export const NotificationCenter: React.FC = () => {
       {/* Bell Button */}
       <button
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => {
+          playClickSound();
+          setIsOpen(!isOpen);
+        }}
         className={cn(
           "relative min-h-[44px] min-w-[44px] inline-flex items-center justify-center p-2 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500/50",
           isOpen 
