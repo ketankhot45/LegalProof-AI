@@ -23,6 +23,7 @@ import { Footer } from '../components/Footer';
 import { NotificationCenter } from '../components/NotificationCenter';
 
 import { playClickSound } from '../lib/audio';
+import { PWAInstallButton } from '../components/PWAInstallButton';
 
 export const DashboardLayout = () => {
   const { user, logout, loading } = useAuth();
@@ -307,6 +308,7 @@ export const DashboardLayout = () => {
             >
               Evidence Integrity • Verified
             </span>
+            <PWAInstallButton variant="nav" className="hidden sm:inline-flex" />
             <div className="h-4 w-[1px] bg-zinc-800 hidden sm:block"></div>
             <div className="hidden md:block">
               <NotificationCenter />

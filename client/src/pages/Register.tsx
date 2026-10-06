@@ -4,8 +4,15 @@ import { Mail, CheckCircle2, ArrowRight } from 'lucide-react';
 import { apiFetch } from '../lib/api';
 import { Logo } from '../components/Logo';
 import { Footer } from '../components/Footer';
+import { usePageSEO } from '../hooks/usePageSEO';
 
 export const Register = () => {
+  usePageSEO({
+    title: 'Create Citizen Account – LegalProof AI',
+    description: 'Register for a complainant account to submit and monitor incident reports with cryptographic verification.',
+    canonicalPath: '/register',
+    robots: 'noindex, follow',
+  });
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

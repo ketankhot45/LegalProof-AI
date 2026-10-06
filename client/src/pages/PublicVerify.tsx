@@ -19,8 +19,15 @@ import {
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import { Logo } from '../components/Logo';
 import { Footer } from '../components/Footer';
+import { usePageSEO } from '../hooks/usePageSEO';
 
 export const PublicVerify = () => {
+  usePageSEO({
+    title: 'Public Evidence Integrity Verification – LegalProof AI',
+    description: 'Independently verify digital evidence SHA-256 cryptographic hashes against immutable records and Polygon Amoy blockchain anchors.',
+    canonicalPath: '/verify',
+    robots: 'index, follow',
+  });
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const queryHash = searchParams.get('hash');

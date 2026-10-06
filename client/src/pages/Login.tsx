@@ -5,10 +5,17 @@ import { User, Briefcase, KeyRound, AlertCircle, CheckCircle2, Mail, RefreshCw }
 import { apiFetch } from '../lib/api';
 import { Logo } from '../components/Logo';
 import { Footer } from '../components/Footer';
+import { usePageSEO } from '../hooks/usePageSEO';
 
 type RoleType = 'COMPLAINANT' | 'INVESTIGATOR' | 'ADMIN';
 
 export const Login = () => {
+  usePageSEO({
+    title: 'Portal Login – LegalProof AI',
+    description: 'Secure multi-role authentication portal for complainants, authorized investigators, and platform administrators.',
+    canonicalPath: '/login',
+    robots: 'noindex, follow',
+  });
   const { portalRole } = useParams<{ portalRole?: string }>();
   const navigate = useNavigate();
   const { login } = useAuth();

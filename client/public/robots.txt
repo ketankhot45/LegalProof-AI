@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+Allow: /verify
+
+Disallow: /dashboard
+Disallow: /complaints
+Disallow: /cases
+Disallow: /evidence
+Disallow: /assignments
+Disallow: /investigators
+Disallow: /api/
+Disallow: /login
+Disallow: /register
+
+Sitemap: https://legalproof.ai.studio/sitemap.xml
