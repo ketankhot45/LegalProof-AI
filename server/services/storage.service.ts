@@ -3,13 +3,33 @@ import fs from 'fs';
 import path from 'path';
 import { Readable } from 'stream';
 
+const isProduction = process.env.NODE_ENV === 'production';
+
 // Supabase Storage Configuration (Primary Persistent Backend)
 const SUPABASE_URL = process.env.SUPABASE_URL || '';
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-const SUPABASE_BUCKET = process.env.SUPABASE_STORAGE_BUCKET || 'evidence-vault';
+const SUPABASE_BUCKET = process.env.SUPABASE_STORAGE_BUCKET || (isProduction ? '' : 'evidence-vault');
 
 // Local Fallback Configuration (Offline Local Dev Only)
 const LOCAL_UPLOADS_DIR = path.join(process.cwd(), 'uploads');
+
+// SEC-MED-01 Remediation:
+// In production (NODE_ENV=production), Supabase Storage configuration MUST be present.
+// Fail closed immediately rather than silently falling back to ephemeral local disk storage.
+if (isProduction) {
+  const missingConfigs: string[] = [];
+  if (!SUPABASE_URL) missingConfigs.push('SUPABASE_URL');
+  if (!SUPABASE_SERVICE_ROLE_KEY) missingConfigs.push('SUPABASE_SERVICE_ROLE_KEY');
+  if (!process.env.SUPABASE_STORAGE_BUCKET) missingConfigs.push('SUPABASE_STORAGE_BUCKET');
+
+  if (missingConfigs.length > 0) {
+    throw new Error(
+      `[SECURITY ERROR] Production storage configuration missing: ${missingConfigs.join(
+        ', '
+      )}. In production (NODE_ENV=production), Supabase Storage is mandatory. Silent fallback to local disk storage is prohibited to prevent data loss or silent misconfiguration.`
+    );
+  }
+}
 
 // Initialize Supabase Storage Client (Server-side service-role only)
 let supabaseClient: SupabaseClient | null = null;
@@ -26,6 +46,9 @@ if (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
  * Ensures the local uploads directory exists when using local fallback storage.
  */
 function ensureLocalUploadsDir() {
+  if (isProduction) {
+    throw new Error('Local uploads directory cannot be created or accessed in production.');
+  }
   if (!fs.existsSync(LOCAL_UPLOADS_DIR)) {
     fs.mkdirSync(LOCAL_UPLOADS_DIR, { recursive: true });
   }
@@ -36,6 +59,9 @@ function ensureLocalUploadsDir() {
  */
 export function getStorageBackendName(): 'supabase' | 'local' {
   if (supabaseClient) return 'supabase';
+  if (isProduction) {
+    throw new Error('Storage backend error: Supabase Storage is required in production.');
+  }
   return 'local';
 }
 
@@ -69,6 +95,9 @@ export async function saveEvidence(
       throw new Error(`Failed to save evidence to Supabase Storage: ${error.message}`);
     }
   } else {
+    if (isProduction) {
+      throw new Error('Local disk fallback is prohibited in production.');
+    }
     ensureLocalUploadsDir();
     const filePath = path.join(LOCAL_UPLOADS_DIR, storageKey);
     fs.writeFileSync(filePath, buffer);
@@ -97,6 +126,9 @@ export async function getEvidenceBuffer(storageKey: string): Promise<Buffer | nu
       return null;
     }
   } else {
+    if (isProduction) {
+      throw new Error('Local disk fallback is prohibited in production.');
+    }
     ensureLocalUploadsDir();
     const filePath = path.join(LOCAL_UPLOADS_DIR, storageKey);
     if (!fs.existsSync(filePath)) return null;
@@ -131,6 +163,9 @@ export async function evidenceExists(storageKey: string): Promise<boolean> {
       return false;
     }
   } else {
+    if (isProduction) {
+      throw new Error('Local disk fallback is prohibited in production.');
+    }
     ensureLocalUploadsDir();
     const filePath = path.join(LOCAL_UPLOADS_DIR, storageKey);
     return fs.existsSync(filePath);
@@ -156,6 +191,9 @@ export async function deleteEvidence(storageKey: string): Promise<void> {
       console.error(`Supabase deleteEvidence error for key ${storageKey}:`, error);
     }
   } else {
+    if (isProduction) {
+      throw new Error('Local disk fallback is prohibited in production.');
+    }
     ensureLocalUploadsDir();
     const filePath = path.join(LOCAL_UPLOADS_DIR, storageKey);
     if (fs.existsSync(filePath)) {
@@ -194,6 +232,9 @@ export async function getEvidenceStream(storageKey: string): Promise<{
       return null;
     }
   } else {
+    if (isProduction) {
+      throw new Error('Local disk fallback is prohibited in production.');
+    }
     ensureLocalUploadsDir();
     const filePath = path.join(LOCAL_UPLOADS_DIR, storageKey);
     if (!fs.existsSync(filePath)) return null;
